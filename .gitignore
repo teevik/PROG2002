@@ -1,0 +1,13 @@
+# Clion
+.idea
+cmake-build-debug
+
+# Manual builds
+build
+
+# direnv
+.direnv
+
+# ccls
+compile_commands.json
+.ccls-cache
