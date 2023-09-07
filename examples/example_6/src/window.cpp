@@ -26,7 +26,7 @@ static void GLAPIENTRY debugMessageCallback(
     }
 }
 
-GLFWwindow *createWindow() {
+GLFWwindow *createWindow(int width, int height) {
     glfwSetErrorCallback(glfwErrorCallback);
 
     auto didInitializeGlfw = glfwInit();
@@ -42,8 +42,8 @@ GLFWwindow *createWindow() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     auto window = glfwCreateWindow(
-            800,
-            600,
+            width,
+            height,
             "Hello world",
             nullptr,
             nullptr

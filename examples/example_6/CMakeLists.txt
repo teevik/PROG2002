@@ -21,9 +21,7 @@ add_executable(example_6 src/main.cpp
         src/window.cpp
         src/window.h
         src/shader.cpp
-        src/shader.h
-        src/Renderer.cpp
-        src/Renderer.h)
+        src/shader.h)
 
 # Specify libraries to link with the 'example_1' target.
 # This tells CMake that when it's linking 'example_1', it should also
