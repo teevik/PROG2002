@@ -20,14 +20,10 @@ find_package(OpenGL REQUIRED)
 add_executable(example_6 src/main.cpp
         src/window.cpp
         src/window.h
-        src/VertexBuffer.cpp
-        src/VertexBuffer.h
-        src/IndexBuffer.cpp
-        src/IndexBuffer.h
-        src/VertexArray.cpp
-        src/VertexArray.h
         src/shader.cpp
-        src/shader.h)
+        src/shader.h
+        src/Renderer.cpp
+        src/Renderer.h)
 
 # Specify libraries to link with the 'example_1' target.
 # This tells CMake that when it's linking 'example_1', it should also
@@ -36,4 +32,4 @@ add_executable(example_6 src/main.cpp
 # - glad: A library to load OpenGL extensions.
 # - OpenGL::GL: This is an imported target for the main OpenGL library
 #               provided by the find_package(OpenGL) command.
-target_link_libraries(example_6 glfw glad OpenGL::GL)
+target_link_libraries(example_6 glm glfw glad OpenGL::GL)
