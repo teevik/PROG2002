@@ -3,17 +3,47 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "window.h"
-#include "shader.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 #include "glm/detail/type_mat4x4.hpp"
-#include "Mesh.h"
+#include "DrawPass.h"
 
 struct Vertex {
     glm::vec2 position;
     glm::vec4 color;
 };
+
+StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
+    std::vector<Triangle<Vertex>> circleTriangles;
+
+    for (int i = 0; i < resolution; i++) {
+        float valueStart = (float) i / (float) resolution;
+        float valueEnd = ((float) (i + 1) / (float) resolution);
+
+        float angleStart = valueStart * glm::pi<float>() * 2.f;
+        float angleEnd = valueEnd * glm::pi<float>() * 2.f;
+
+        circleTriangles.push_back(
+            {
+                .a =   {
+                    .position = center + glm::vec2(glm::cos(angleStart), glm::sin(angleStart)),
+                    .color = {valueStart, valueStart, valueStart, 1.f}
+                },
+                .b =   {
+                    .position = center + glm::vec2(glm::cos(angleEnd), glm::sin(angleEnd)),
+                    .color = {valueEnd, valueEnd, valueEnd, 1.f}
+                },
+                .c =   {
+                    .position = center,
+                    .color = {1.f, 0.f, 1.f, 1.f}
+                },
+            }
+        );
+    }
+
+    return StaticMesh<Vertex>{.triangles = std::move(circleTriangles)};
+}
 
 int main() {
     int width = 800;
@@ -21,21 +51,8 @@ int main() {
 
     auto window = createWindow(width, height);
 
-    // TODO: new structure
-    // DrawPass
-    //     holds one shader pipeline
-    //     holds one list of VertexAttribute
-    //     holds multiple static meshes
-    //     ?holds multiple dynamic meshes (future)
-
-    auto mesh = Mesh<Vertex>{
-        .attributes = {
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
-            {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
-        }
-    };
-    mesh.pushTriangles(
-        {
+    auto twoTrianglesMesh = StaticMesh<Vertex>{
+        .triangles = {
             {
                 .a = {.position = glm::vec2(-0.9f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
                 .b = {.position = glm::vec2(1.f, -1.f), .color = {0.f, 1.f, 1.f, 1.f}},
@@ -47,9 +64,10 @@ int main() {
                 .c = {.position = glm::vec2(0.9f, 1.f), .color = {1.f, 0.f, 1.f, 1.f}}
             }
         }
-    );
+    };
 
-    auto gpuMesh = mesh.initialize();
+
+    auto circleMesh = generateCircleMesh({1.f, -1.f}, 32);
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -91,16 +109,22 @@ int main() {
         }
     )";
 
-    // Shader
-    uint32_t shaderId = createShaderPipeline(vertexShaderSource, fragmentShaderSource);
-    glUseProgram(shaderId);
+    auto drawPass = DrawPass<Vertex>{
+        .vertexShaderSource = vertexShaderSource,
+        .fragmentShaderSource = fragmentShaderSource,
+        .attributes = {
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
+            {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
+        },
+        .staticMeshes = {twoTrianglesMesh, circleMesh},
+    }.initialize();
 
     // Projection
     float aspectRatio = (float) width / (float) height;
     auto projection = glm::ortho(-2.0f * aspectRatio, 2.0f * aspectRatio, -2.0f, 2.0f, -0.01f, 1.0f);
-    auto projectionLocation = glGetUniformLocation(shaderId, "projection");
+    auto projectionLocation = glGetUniformLocation(drawPass.shaderId, "projection");
     assert(projectionLocation != -1);
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);
+    glProgramUniformMatrix4fv(drawPass.shaderId, projectionLocation, 1, false, &projection[0][0]);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
@@ -111,13 +135,13 @@ int main() {
 
         // Set time uniform
         auto time = (float) glfwGetTime();
-        int32_t timeLocation = glGetUniformLocation(shaderId, "time");
+        int32_t timeLocation = glGetUniformLocation(drawPass.shaderId, "time");
         assert(timeLocation != -1);
-        glUniform1f(timeLocation, time);
+        glProgramUniform1f(drawPass.shaderId, timeLocation, time);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        gpuMesh.draw();
+        drawPass.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
@@ -127,8 +151,7 @@ int main() {
         if (isPressingEscape) break;
     }
 
-    gpuMesh.free();
-    glDeleteProgram(shaderId);
+    drawPass.free();
 
     glfwTerminate();
 
