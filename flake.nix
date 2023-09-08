@@ -16,6 +16,7 @@
           cmake
           ninja
           clang
+          linuxPackages_latest.perf
 
           # x11
           xorg.libX11
