@@ -59,7 +59,7 @@ int main() {
 
     // language=glsl
     const std::string vertexShaderSource = R"(
-        #version 430 core
+        #version 460 core
 
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec4 color;
@@ -76,7 +76,7 @@ int main() {
 
     // language=glsl
     const std::string fragmentShaderSource = R"(
-        #version 430 core
+        #version 460 core
 
         float rand(float n){return fract(sin(n) * 43758.5453123);}
 
