@@ -8,6 +8,6 @@
 
 std::optional<unsigned int> compileShader(const std::string &source, GLenum shaderType);
 
-uint32_t createShader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource);
+uint32_t createShaderPipeline(const std::string &vertexShaderSource, const std::string &fragmentShaderSource);
 
 #endif //PROG2002_SHADER_H

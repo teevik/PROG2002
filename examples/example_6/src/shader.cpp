@@ -39,7 +39,7 @@ std::optional<uint32_t> compileShader(const std::string &source, GLenum shaderTy
  * @param fragmentShaderSource
  * @return Shader program
  */
-uint32_t createShader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) {
+uint32_t createShaderPipeline(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) {
     uint32_t program = glCreateProgram();
 
     uint32_t vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER).value();

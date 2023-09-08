@@ -26,7 +26,7 @@ int main() {
 
     auto window = createWindow(width, height);
 
-    std::vector<Triangle> triangles = {
+    const std::vector<Triangle> triangles = {
             {
                     .a = {.position = glm::vec2(-1.f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
                     .b = {.position = glm::vec2(1.f, -1.f), .color = {0.f, 1.f, 1.f, 1.f}},
@@ -39,23 +39,28 @@ int main() {
             }
     };
 
-    // Setup vertex buffer
-    uint32_t vertexBufferId;
-    glGenBuffers(1, &vertexBufferId);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
-    glBufferData(GL_ARRAY_BUFFER, triangles.size() * sizeof(Triangle), triangles.data(), GL_STATIC_DRAW);
-
-    // Setup vertex array
+    // Setup vertex array and vertex buffer
     uint32_t vertexArrayId;
-    glGenVertexArrays(1, &vertexArrayId);
-    glBindVertexArray(vertexArrayId);
+    uint32_t vertexBufferId;
+    // uint32_t indexBufferId;
 
-    // Setup vertex attributes
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(Vertex), (void *) offsetof(Vertex, position));
-    glEnableVertexAttribArray(0);
+    glCreateVertexArrays(1, &vertexArrayId);
+    glCreateBuffers(1, &vertexBufferId);
+    // glCreateBuffers(1, &indexBufferId);
 
-    glVertexAttribPointer(1, 4, GL_FLOAT, false, sizeof(Vertex), (void *) offsetof(Vertex, color));
-    glEnableVertexAttribArray(1);
+    glNamedBufferData(vertexBufferId, triangles.size() * sizeof(Triangle), triangles.data(), GL_STATIC_DRAW);
+    // glnamedBufferData(indexBufferId, sizeof(indices), GL_STATIC_DRAW);
+
+    glEnableVertexArrayAttrib(vertexArrayId, 0);
+    glVertexArrayAttribBinding(vertexArrayId, 0, 0);
+    glVertexArrayAttribFormat(vertexArrayId, 0, 2, GL_FLOAT, false, offsetof(Vertex, position));
+
+    glEnableVertexArrayAttrib(vertexArrayId, 1);
+    glVertexArrayAttribBinding(vertexArrayId, 1, 0);
+    glVertexArrayAttribFormat(vertexArrayId, 1, 4, GL_FLOAT, false, offsetof(Vertex, color));
+
+    glVertexArrayVertexBuffer(vertexArrayId, 0, vertexBufferId, 0, sizeof(Vertex));
+//    glVertexArrayElementBuffer(vertexArrayId. indexBufferId);
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -98,8 +103,9 @@ int main() {
     )";
 
     // Shader
-    uint32_t shaderId = createShader(vertexShaderSource, fragmentShaderSource);
+    uint32_t shaderId = createShaderPipeline(vertexShaderSource, fragmentShaderSource);
     glUseProgram(shaderId);
+    glBindVertexArray(vertexArrayId);
 
     // Projection
     float aspectRatio = (float) width / (float) height;
@@ -123,6 +129,7 @@ int main() {
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
+//        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
