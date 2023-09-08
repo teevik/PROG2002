@@ -8,13 +8,13 @@ static void glfwErrorCallback(int32_t code, const char *description) {
 }
 
 static void GLAPIENTRY debugMessageCallback(
-        GLenum source,
-        GLenum type,
-        GLuint id,
-        GLenum severity,
-        GLsizei length,
-        const GLchar *message,
-        const void *userParam
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar *message,
+    const void *userParam
 ) {
     std::cerr << "OpenGL Callback: " << (type == GL_DEBUG_TYPE_ERROR ? "** ERROR **" : "")
               << " Type: 0x" << type
@@ -42,11 +42,11 @@ GLFWwindow *createWindow(int width, int height) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     auto window = glfwCreateWindow(
-            width,
-            height,
-            "Hello world",
-            nullptr,
-            nullptr
+        width,
+        height,
+        "Hello world",
+        nullptr,
+        nullptr
     );
 
     if (window == nullptr) {

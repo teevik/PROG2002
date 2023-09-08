@@ -8,16 +8,11 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 #include "glm/detail/type_mat4x4.hpp"
+#include "Mesh.h"
 
 struct Vertex {
     glm::vec2 position;
     glm::vec4 color;
-};
-
-struct Triangle {
-    Vertex a;
-    Vertex b;
-    Vertex c;
 };
 
 int main() {
@@ -26,41 +21,35 @@ int main() {
 
     auto window = createWindow(width, height);
 
-    const std::vector<Triangle> triangles = {
+    // TODO: new structure
+    // DrawPass
+    //     holds one shader pipeline
+    //     holds one list of VertexAttribute
+    //     holds multiple static meshes
+    //     ?holds multiple dynamic meshes (future)
+
+    auto mesh = Mesh<Vertex>{
+        .attributes = {
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
+            {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
+        }
+    };
+    mesh.pushTriangles(
+        {
             {
-                    .a = {.position = glm::vec2(-1.f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
-                    .b = {.position = glm::vec2(1.f, -1.f), .color = {0.f, 1.f, 1.f, 1.f}},
-                    .c = {.position = glm::vec2(1.f, 1.f), .color = {1.f, 0.f, 1.f, 1.f}}
+                .a = {.position = glm::vec2(-0.9f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
+                .b = {.position = glm::vec2(1.f, -1.f), .color = {0.f, 1.f, 1.f, 1.f}},
+                .c = {.position = glm::vec2(1.f, 0.9f), .color = {1.f, 0.f, 1.f, 1.f}}
             },
             {
-                    .a = {.position = glm::vec2(-1.f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
-                    .b = {.position = glm::vec2(-1.f, 1.f), .color = {0.f, 1.f, 1.f, 1.f}},
-                    .c = {.position = glm::vec2(1.f, 1.f), .color = {1.f, 0.f, 1.f, 1.f}}
+                .a = {.position = glm::vec2(-1.f, -0.9f), .color = {1.f, 1.f, 0.f, 1.f}},
+                .b = {.position = glm::vec2(-1.f, 1.f), .color = {0.f, 1.f, 1.f, 1.f}},
+                .c = {.position = glm::vec2(0.9f, 1.f), .color = {1.f, 0.f, 1.f, 1.f}}
             }
-    };
+        }
+    );
 
-    // Setup vertex array and vertex buffer
-    uint32_t vertexArrayId;
-    uint32_t vertexBufferId;
-    // uint32_t indexBufferId;
-
-    glCreateVertexArrays(1, &vertexArrayId);
-    glCreateBuffers(1, &vertexBufferId);
-    // glCreateBuffers(1, &indexBufferId);
-
-    glNamedBufferData(vertexBufferId, triangles.size() * sizeof(Triangle), triangles.data(), GL_STATIC_DRAW);
-    // glnamedBufferData(indexBufferId, sizeof(indices), GL_STATIC_DRAW);
-
-    glEnableVertexArrayAttrib(vertexArrayId, 0);
-    glVertexArrayAttribBinding(vertexArrayId, 0, 0);
-    glVertexArrayAttribFormat(vertexArrayId, 0, 2, GL_FLOAT, false, offsetof(Vertex, position));
-
-    glEnableVertexArrayAttrib(vertexArrayId, 1);
-    glVertexArrayAttribBinding(vertexArrayId, 1, 0);
-    glVertexArrayAttribFormat(vertexArrayId, 1, 4, GL_FLOAT, false, offsetof(Vertex, color));
-
-    glVertexArrayVertexBuffer(vertexArrayId, 0, vertexBufferId, 0, sizeof(Vertex));
-//    glVertexArrayElementBuffer(vertexArrayId. indexBufferId);
+    auto gpuMesh = mesh.initialize();
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -105,7 +94,6 @@ int main() {
     // Shader
     uint32_t shaderId = createShaderPipeline(vertexShaderSource, fragmentShaderSource);
     glUseProgram(shaderId);
-    glBindVertexArray(vertexArrayId);
 
     // Projection
     float aspectRatio = (float) width / (float) height;
@@ -114,6 +102,7 @@ int main() {
     assert(projectionLocation != -1);
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, &projection[0][0]);
 
+    // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
 
     // Event loop
@@ -128,8 +117,7 @@ int main() {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
-//        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+        gpuMesh.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
@@ -139,8 +127,7 @@ int main() {
         if (isPressingEscape) break;
     }
 
-    glDeleteBuffers(1, &vertexBufferId);
-    glDeleteBuffers(1, &vertexArrayId);
+    gpuMesh.free();
     glDeleteProgram(shaderId);
 
     glfwTerminate();
