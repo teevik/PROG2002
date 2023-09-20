@@ -5,6 +5,8 @@
 StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
     std::vector<Triangle<Vertex>> circleTriangles;
 
+    glm::vec4 color{1.f, 1.f, 1.f, 1.f};
+
     for (int i = 0; i < resolution; i++) {
         float valueStart = (float) i / (float) resolution;
         float valueEnd = ((float) (i + 1) / (float) resolution);
@@ -14,18 +16,18 @@ StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
 
         circleTriangles.push_back(
             {
-                .a =   {
+                .a = {
                     .position = center + glm::vec2(glm::cos(angleStart), glm::sin(angleStart)),
-                    .color = {valueStart, valueStart, valueStart, 1.f}
+                    .color = color
                 },
-                .b =   {
+                .b = {
                     .position = center + glm::vec2(glm::cos(angleEnd), glm::sin(angleEnd)),
-                    .color = {valueEnd, valueEnd, valueEnd, 1.f}
+                    .color = color
                 },
-                .c =   {
+                .c = {
                     .position = center,
-                    .color = {1.f, 0.f, 1.f, 1.f}
-                },
+                    .color = color
+                }
             }
         );
     }
