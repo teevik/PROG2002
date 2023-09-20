@@ -1,11 +1,11 @@
-#ifndef PROG2002_DRAWPASS_H
-#define PROG2002_DRAWPASS_H
+#ifndef PROG2002_OBJECT_H
+#define PROG2002_OBJECT_H
 
 #include <vector>
 #include <cstdint>
 #include <string>
 #include "glad/glad.h"
-#include "shader.h"
+#include "Shader.h"
 
 template<typename VertexType>
 struct Triangle {
@@ -41,20 +41,20 @@ struct StaticMesh {
 };
 
 /**
- * An initialized version of `DrawPass` with all OpenGL objects created
+ * An object that can be drawed
  */
 template<typename VertexType>
-struct InitializedDrawPass {
+struct Object {
     using TriangleType = Triangle<VertexType>;
 
     const std::vector<TriangleType> triangles;
 
-    const uint32_t shaderId;
+    const std::shared_ptr<Shader> shader;
     const uint32_t vertexBufferId;
     const uint32_t vertexArrayId;
 
     void draw() {
-        glUseProgram(shaderId);
+        glUseProgram(shader->id);
         glBindVertexArray(vertexArrayId);
         glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
         // glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -63,33 +63,29 @@ struct InitializedDrawPass {
     void free() {
         glDeleteBuffers(1, &vertexBufferId);
         glDeleteVertexArrays(1, &vertexArrayId);
-        glDeleteProgram(shaderId);
     }
 };
 
 /**
- * A draw pass, contains the following:
- * - One shader pipeline
+ * A builder for object, contains the following:
+ * - One shader
  * - One list of vertex attributes
  * - Multiple static meshes
  */
 template<typename VertexType>
-struct DrawPass {
+struct ObjectBuilder {
     using TriangleType = Triangle<VertexType>;
     using StaticMeshType = StaticMesh<VertexType>;
 
-    std::string vertexShaderSource;
-    std::string fragmentShaderSource;
+    std::shared_ptr<Shader> shader;
     std::vector<VertexAttribute> attributes;
     std::vector<StaticMeshType> staticMeshes;
 
-    InitializedDrawPass<VertexType> initialize() {
+    Object<VertexType> build() {
         std::vector<TriangleType> triangles;
         for (auto &staticMesh: staticMeshes) {
             triangles.insert(triangles.end(), staticMesh.triangles.begin(), staticMesh.triangles.end());
         }
-
-        uint32_t shaderId = createShaderPipeline(vertexShaderSource, fragmentShaderSource);
 
         uint32_t vertexArrayId;
         uint32_t vertexBufferId;
@@ -98,17 +94,17 @@ struct DrawPass {
         glCreateBuffers(1, &vertexBufferId);
         // glCreateBuffers(1, &indexBufferId);
 
-        InitializedDrawPass<VertexType> initializedDrawPass{
+        Object<VertexType> builtObject{
             .triangles = std::move(triangles),
-            .shaderId = shaderId,
+            .shader = shader,
             .vertexBufferId = vertexBufferId,
             .vertexArrayId = vertexArrayId
         };
 
         glNamedBufferData(
             vertexBufferId,
-            initializedDrawPass.triangles.size() * sizeof(TriangleType),
-            initializedDrawPass.triangles.data(),
+            builtObject.triangles.size() * sizeof(TriangleType),
+            builtObject.triangles.data(),
             GL_STATIC_DRAW
         );
         // glnamedBufferData(indexBufferId, sizeof(indices), GL_STATIC_DRAW);
@@ -136,8 +132,8 @@ struct DrawPass {
             sizeof(VertexType)
         );
 
-        return initializedDrawPass;
+        return builtObject;
     }
 };
 
-#endif //PROG2002_DRAWPASS_H
+#endif //PROG2002_OBJECT_H

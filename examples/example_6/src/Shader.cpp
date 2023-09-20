@@ -1,6 +1,8 @@
+#include "Shader.h"
+#include "glad/glad.h"
 #include <memory>
 #include <iostream>
-#include "shader.h"
+#include <optional>
 
 /**
  * @param source
@@ -55,4 +57,12 @@ uint32_t createShaderPipeline(const std::string &vertexShaderSource, const std::
     glDeleteShader(fragmentShader);
 
     return program;
+}
+
+Shader::Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) :
+    id(createShaderPipeline(vertexShaderSource, fragmentShaderSource)) {
+}
+
+Shader::~Shader() {
+    glDeleteProgram(id);
 }

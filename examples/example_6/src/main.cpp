@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <memory>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "window.h"
@@ -7,7 +8,8 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 #include "glm/detail/type_mat4x4.hpp"
-#include "DrawPass.h"
+#include "Object.h"
+#include "Shader.h"
 
 struct Vertex {
     glm::vec2 position;
@@ -109,22 +111,23 @@ int main() {
         }
     )";
 
-    auto drawPass = DrawPass<Vertex>{
-        .vertexShaderSource = vertexShaderSource,
-        .fragmentShaderSource = fragmentShaderSource,
+    std::shared_ptr<Shader> shader(new Shader(vertexShaderSource, fragmentShaderSource));
+
+    auto object = ObjectBuilder<Vertex>{
+        .shader = shader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
         .staticMeshes = {twoTrianglesMesh, circleMesh},
-    }.initialize();
+    }.build();
 
     // Projection
     float aspectRatio = (float) width / (float) height;
     auto projection = glm::ortho(-2.0f * aspectRatio, 2.0f * aspectRatio, -2.0f, 2.0f, -0.01f, 1.0f);
-    auto projectionLocation = glGetUniformLocation(drawPass.shaderId, "projection");
+    auto projectionLocation = glGetUniformLocation(object.shader->id, "projection");
     assert(projectionLocation != -1);
-    glProgramUniformMatrix4fv(drawPass.shaderId, projectionLocation, 1, false, &projection[0][0]);
+    glProgramUniformMatrix4fv(object.shader->id, projectionLocation, 1, false, &projection[0][0]);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
@@ -135,13 +138,13 @@ int main() {
 
         // Set time uniform
         auto time = (float) glfwGetTime();
-        int32_t timeLocation = glGetUniformLocation(drawPass.shaderId, "time");
+        int32_t timeLocation = glGetUniformLocation(object.shader->id, "time");
         assert(timeLocation != -1);
-        glProgramUniform1f(drawPass.shaderId, timeLocation, time);
+        glProgramUniform1f(object.shader->id, timeLocation, time);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        drawPass.draw();
+        object.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
@@ -151,7 +154,7 @@ int main() {
         if (isPressingEscape) break;
     }
 
-    drawPass.free();
+    object.free();
 
     glfwTerminate();
 
