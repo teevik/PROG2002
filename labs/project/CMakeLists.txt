@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.15)
 # Declare a new project named 'example_1'. This sets various variables
 # related to the project and provides a context for the following CMake
 # commands.
-project(example_6)
+project(labs_project)
 
 # Search for the OpenGL package on the system. The REQUIRED argument
 # ensures that if OpenGL is not found, CMake will produce an error and
@@ -17,7 +17,7 @@ find_package(OpenGL REQUIRED)
 # Add an executable target named 'example_1' that is built from the source
 # file 'main.cpp'. This means that CMake will generate build rules to compile
 # 'main.cpp' and link it into an executable program named 'example_1'.
-add_executable(example_6 src/main.cpp
+add_executable(labs_project src/main.cpp
         src/lib/window.cpp
         src/lib/window.h
         src/lib/Object.h
@@ -34,4 +34,4 @@ add_executable(example_6 src/main.cpp
 # - glad: A library to load OpenGL extensions.
 # - OpenGL::GL: This is an imported target for the main OpenGL library
 #               provided by the find_package(OpenGL) command.
-target_link_libraries(example_6 glm glfw glad OpenGL::GL)
+target_link_libraries(labs_project glm glfw glad OpenGL::GL)
