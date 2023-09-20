@@ -1,7 +1,6 @@
 #ifndef PROG2002_SHADER_H
 #define PROG2002_SHADER_H
 
-
 #include <string>
 
 class Shader {

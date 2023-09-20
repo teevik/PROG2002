@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <memory>
 #include "glad/glad.h"
 #include "Shader.h"
 

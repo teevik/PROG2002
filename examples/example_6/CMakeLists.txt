@@ -18,11 +18,14 @@ find_package(OpenGL REQUIRED)
 # file 'main.cpp'. This means that CMake will generate build rules to compile
 # 'main.cpp' and link it into an executable program named 'example_1'.
 add_executable(example_6 src/main.cpp
-        src/window.cpp
-        src/window.h
-        src/Object.h
-        src/Shader.cpp
-        src/Shader.h)
+        src/lib/window.cpp
+        src/lib/window.h
+        src/lib/Object.h
+        src/lib/Shader.cpp
+        src/lib/Shader.h
+        src/geometry.cpp
+        src/geometry.h
+        src/types.h)
 
 # Specify libraries to link with the 'example_1' target.
 # This tells CMake that when it's linking 'example_1', it should also
