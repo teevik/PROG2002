@@ -3,21 +3,19 @@
 #include <memory>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "lib/window.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/vec2.hpp"
 #include "glm/detail/type_mat4x4.hpp"
-#include "lib/Object.h"
-#include "lib/Shader.h"
 #include "geometry.h"
+#include "framework/window.h"
 
 int main() {
     int width = 800;
     int height = 600;
 
-    auto window = createWindow(width, height);
+    auto window = framework::createWindow(width, height);
 
-    auto twoTrianglesMesh = StaticMesh<Vertex>{
+    auto twoTrianglesMesh = framework::StaticMesh<Vertex>{
         .triangles = {
             {
                 .a = {.position = glm::vec2(-0.9f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
@@ -75,9 +73,9 @@ int main() {
         }
     )";
 
-    std::shared_ptr<Shader> shader(new Shader(vertexShaderSource, fragmentShaderSource));
+    std::shared_ptr<framework::Shader> shader(new framework::Shader(vertexShaderSource, fragmentShaderSource));
 
-    auto object = ObjectBuilder<Vertex>{
+    auto object = framework::ObjectBuilder<Vertex>{
         .shader = shader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},

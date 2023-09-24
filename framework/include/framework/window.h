@@ -4,6 +4,8 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-GLFWwindow *createWindow(int width, int height);
+namespace framework {
+    GLFWwindow *createWindow(int width, int height);
+}
 
 #endif //PROG2002_WINDOW_H

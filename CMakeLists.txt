@@ -54,6 +54,9 @@ add_subdirectory(external/tinyobjloader)
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE external/stb)
 
+# Add a subdirectory for a framework.
+add_subdirectory(framework)
+
 # Add subdirectories for OpenGL lab examples. These likely contain individual
 # projects or exercises that students might work on.
 add_subdirectory(examples/example_1)
@@ -63,10 +66,7 @@ add_subdirectory(examples/example_4)
 add_subdirectory(examples/example_5)
 
 # Add a subdirectory for a labs.
-add_subdirectory(labs/project)
-
-# Add a subdirectory for a framework.
-add_subdirectory(framework)
+add_subdirectory(labs/lab1)
 
 # Add a subdirectory for assignments. Like the framework, this is commented out,
 # potentially to be enabled later when assignments are ready.

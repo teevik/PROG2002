@@ -2,8 +2,8 @@
 #include "glm/ext/scalar_constants.hpp"
 #include "glm/glm.hpp"
 
-StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
-    std::vector<Triangle<Vertex>> circleTriangles;
+framework::StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
+    std::vector<framework::Triangle<Vertex>> circleTriangles;
 
     glm::vec4 color{1.f, 1.f, 1.f, 1.f};
 
@@ -32,5 +32,5 @@ StaticMesh<Vertex> generateCircleMesh(glm::vec2 center, int resolution) {
         );
     }
 
-    return StaticMesh<Vertex>{.triangles = std::move(circleTriangles)};
+    return framework::StaticMesh<Vertex>{.triangles = std::move(circleTriangles)};
 }

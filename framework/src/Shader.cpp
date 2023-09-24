@@ -1,4 +1,4 @@
-#include "Shader.h"
+#include "framework/Shader.h"
 #include "glad/glad.h"
 #include <memory>
 #include <iostream>
@@ -59,10 +59,13 @@ uint32_t createShaderPipeline(const std::string &vertexShaderSource, const std::
     return program;
 }
 
-Shader::Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) :
-    id(createShaderPipeline(vertexShaderSource, fragmentShaderSource)) {
+namespace framework {
+    Shader::Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource) :
+        id(createShaderPipeline(vertexShaderSource, fragmentShaderSource)) {
+    }
+
+    Shader::~Shader() {
+        glDeleteProgram(id);
+    }
 }
 
-Shader::~Shader() {
-    glDeleteProgram(id);
-}
