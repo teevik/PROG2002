@@ -17,10 +17,7 @@ find_package(OpenGL REQUIRED)
 # Add an executable target named 'example_1' that is built from the source
 # file 'main.cpp'. This means that CMake will generate build rules to compile
 # 'main.cpp' and link it into an executable program named 'example_1'.
-add_executable(${PROJECT_NAME} src/main.cpp
-        src/geometry.cpp
-        src/geometry.h
-        src/types.h)
+add_executable(${PROJECT_NAME} main.cpp)
 
 # Specify libraries to link with the 'example_1' target.
 # This tells CMake that when it's linking 'example_1', it should also

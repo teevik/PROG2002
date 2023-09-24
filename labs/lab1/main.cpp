@@ -1,13 +1,20 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <ranges>
+#include <iostream>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/vec2.hpp"
 #include "glm/detail/type_mat4x4.hpp"
-#include "geometry.h"
 #include "framework/window.h"
+#include "framework/geometry.h"
+
+struct Vertex {
+    glm::vec2 position;
+    glm::vec4 color;
+};
 
 int main() {
     int width = 800;
@@ -15,23 +22,47 @@ int main() {
 
     auto window = framework::createWindow(width, height);
 
-    auto twoTrianglesMesh = framework::StaticMesh<Vertex>{
-        .triangles = {
-            {
-                .a = {.position = glm::vec2(-0.9f, -1.f), .color = {1.f, 1.f, 0.f, 1.f}},
-                .b = {.position = glm::vec2(1.f, -1.f), .color = {0.f, 1.f, 1.f, 1.f}},
-                .c = {.position = glm::vec2(1.f, 0.9f), .color = {1.f, 0.f, 1.f, 1.f}}
-            },
-            {
-                .a = {.position = glm::vec2(-1.f, -0.9f), .color = {1.f, 1.f, 0.f, 1.f}},
-                .b = {.position = glm::vec2(-1.f, 1.f), .color = {0.f, 1.f, 1.f, 1.f}},
-                .c = {.position = glm::vec2(0.9f, 1.f), .color = {1.f, 0.f, 1.f, 1.f}}
-            }
+    // Triangle
+    auto triangle = framework::Triangle<Vertex>{
+        .a = {
+            .position = framework::unitTriangle2d.a,
+            .color = {1.f, 1.f, 0.f, 1.f}
+        },
+        .b = {
+            .position = framework::unitTriangle2d.b,
+            .color = {0.f, 1.f, 1.f, 1.f}
+        },
+        .c = {
+            .position = framework::unitTriangle2d.c,
+            .color = {1.f, 0.f, 1.f, 1.f}
         }
     };
+    framework::StaticMesh<Vertex> triangleMesh{.triangles = {triangle}};
 
 
-    auto circleMesh = generateCircleMesh({1.f, -1.f}, 32);
+    // Circle
+    glm::vec2 circlePosition = {1.f, -1.f};
+    auto circleColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
+
+    auto circleTriangles =
+        framework::generateCircleMesh(32) | std::views::transform([circleColor, circlePosition](auto position) {
+            return framework::Triangle<Vertex>{
+                .a = {
+                    .position = circlePosition + position.a,
+                    .color = circleColor
+                },
+                .b = {
+                    .position = circlePosition + position.b,
+                    .color = circleColor
+                },
+                .c = {
+                    .position = circlePosition + position.c,
+                    .color = circleColor
+                }
+            };
+        });
+
+    framework::StaticMesh<Vertex> circleMesh{.triangles = {circleTriangles.begin(), circleTriangles.end()}};
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -81,7 +112,10 @@ int main() {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
-        .staticMeshes = {twoTrianglesMesh, circleMesh},
+        .staticMeshes = {
+            triangleMesh,
+            circleMesh
+        },
     }.build();
 
     // Projection
