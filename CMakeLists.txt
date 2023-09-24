@@ -8,7 +8,7 @@ project(PROG2002)
 
 # Set the C++ standard to C++17 for all targets in the project. This variable denotes
 # the desired C++ standard version (e.g., 11, 14, 17, 20).
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Enforce that the specified C++ standard is mandatory. If set to ON, then it's a
 # requirement to have C++17. If the compiler does not support it, CMake will fail.
@@ -54,6 +54,9 @@ add_subdirectory(external/tinyobjloader)
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE external/stb)
 
+# Add a subdirectory for a framework.
+add_subdirectory(framework)
+
 # Add subdirectories for OpenGL lab examples. These likely contain individual
 # projects or exercises that students might work on.
 add_subdirectory(examples/example_1)
@@ -62,13 +65,8 @@ add_subdirectory(examples/example_3)
 add_subdirectory(examples/example_4)
 add_subdirectory(examples/example_5)
 
-# Add a subdirectory for a labs. This line is commented out, possibly because the
-# labs is either under development or optional.
-# add_subdirectory(labs)
-
-# Add a subdirectory for a framework. This line is commented out, possibly because the
-# framework is either under development or optional.
-# add_subdirectory(framework)
+# Add a subdirectory for a labs.
+add_subdirectory(labs/lab1)
 
 # Add a subdirectory for assignments. Like the framework, this is commented out,
 # potentially to be enabled later when assignments are ready.
