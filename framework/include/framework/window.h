@@ -5,7 +5,7 @@
 #include "GLFW/glfw3.h"
 
 namespace framework {
-    GLFWwindow *createWindow(int width, int height);
+    GLFWwindow *createWindow(int width, int height, const std::string &title);
 }
 
 #endif //PROG2002_WINDOW_H

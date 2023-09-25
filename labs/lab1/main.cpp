@@ -2,7 +2,6 @@
 #include <vector>
 #include <memory>
 #include <ranges>
-#include <iostream>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/ext/matrix_clip_space.hpp"
@@ -20,7 +19,7 @@ int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height);
+    auto window = framework::createWindow(width, height, "Lab 1");
 
     // Triangle
     auto triangle = framework::Triangle<Vertex>{
@@ -39,10 +38,9 @@ int main() {
     };
     framework::StaticMesh<Vertex> triangleMesh{.triangles = {triangle}};
 
-
     // Circle
     glm::vec2 circlePosition = {1.f, -1.f};
-    auto circleColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
+    glm::vec4 circleColor = {1.f, 1.f, 1.f, 1.f};
 
     auto circleTriangles =
         framework::generateCircleMesh(32) | std::views::transform([circleColor, circlePosition](auto position) {
