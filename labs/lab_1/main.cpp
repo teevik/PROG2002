@@ -24,15 +24,15 @@ int main() {
     // Triangle
     auto triangle = framework::Triangle<Vertex>{
         .a = {
-            .position = framework::unitTriangle2d.a,
+            .position = framework::unitTriangle.a,
             .color = {1.f, 1.f, 0.f, 1.f}
         },
         .b = {
-            .position = framework::unitTriangle2d.b,
+            .position = framework::unitTriangle.b,
             .color = {0.f, 1.f, 1.f, 1.f}
         },
         .c = {
-            .position = framework::unitTriangle2d.c,
+            .position = framework::unitTriangle.c,
             .color = {1.f, 0.f, 1.f, 1.f}
         }
     };

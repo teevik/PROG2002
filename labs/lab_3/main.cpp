@@ -4,60 +4,63 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/ext/matrix_clip_space.hpp"
-#include "glm/vec2.hpp"
 #include "glm/detail/type_mat4x4.hpp"
 #include "framework/window.h"
 #include "framework/geometry.h"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 const int BOARD_SIZE = 8;
 
-struct Vertex {
-    /// Vertex position
-    glm::vec2 position;
 
-    /// Position between {0.f, 0.f} (top left corner) and {1.f, 1.f} (bottom right corner)
-    glm::vec2 gridPosition;
-};
+struct Chessboard {
+    struct Vertex {
+        /// Vertex position
+        glm::vec2 position;
 
-int main() {
-    int width = 800;
-    int height = 600;
-
-    auto window = framework::createWindow(width, height, "Lab 1");
-
-    // Chessboard mesh
-    std::vector<framework::Triangle<Vertex>> chesboardTriangles = {
-        {
-            .a = { // right top
-                .position = {1.f, 1.f},
-                .gridPosition = {1.f, 0.f}
-            },
-            .b = { // right bottom
-                .position = {1.f, -1.f},
-                .gridPosition = {1.f, 1.f}
-            },
-            .c = { // left top
-                .position = {-1.f, 1.f},
-                .gridPosition = {0.f, 0.f}
-            }
-        },
-        {
-            .a = { // right bottom
-                .position = {1.f, -1.f},
-                .gridPosition = {1.f, 1.f}
-            },
-            .b = { // left bottom
-                .position = {-1.f, -1.f},
-                .gridPosition = {0.f, 1.f}
-            },
-            .c = { // left top
-                .position = {-1.f, 1.f},
-                .gridPosition = {0.f, 0.f}
-            }
-        }
+        /// Position between {0.f, 0.f} (top left corner) and {1.f, 1.f} (bottom right corner)
+        glm::vec2 gridPosition;
     };
 
+    const framework::VertexArrayObject<Vertex> object;
+    glm::ivec2 selectedTile;
+
+    void draw() const {
+        object.shader->uploadUniformInt2("selected_tile", selectedTile);
+        object.draw();
+    }
+
+    void handleKeyInput(int key, int action) {
+        if (action == GLFW_PRESS) {
+            switch (key) {
+                case GLFW_KEY_LEFT:
+                    if (selectedTile.x > 0) selectedTile.x -= 1;
+                    break;
+
+                case GLFW_KEY_RIGHT:
+                    if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
+                    break;
+
+                case GLFW_KEY_UP:
+                    if (selectedTile.y > 0) selectedTile.y -= 1;
+                    break;
+
+                case GLFW_KEY_DOWN:
+                    if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    void free() {
+        object.free();
+    }
+};
+
+Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     // language=glsl
     const std::string vertexShaderSource = R"(
         #version 450 core
@@ -110,18 +113,169 @@ int main() {
 
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArrayObjectBuilder<Vertex>{
+    // Chessboard mesh
+    std::vector<Chessboard::Vertex> chesboardVertices = {
+        { // right top
+            .position = {1.f, 1.f},
+            .gridPosition = {1.f, 0.f}
+        },
+        { // right bottom
+            .position = {1.f, -1.f},
+            .gridPosition = {1.f, 1.f}
+        },
+        { // left top
+            .position = {-1.f, 1.f},
+            .gridPosition = {0.f, 0.f}
+        },
+        { // left bottom
+            .position = {-1.f, -1.f},
+            .gridPosition = {0.f, 1.f}
+        },
+    };
+
+    std::vector<uint32_t> chessboardIndices = {
+        0, // right top
+        1, // right bottom
+        2, // left top
+        1, // right bottom
+        3, // left bottom
+        2 // left top
+    };
+
+    auto chessboardModelMatrix = glm::mat4(1.0f);
+    chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
+    chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
+    chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
+
+    // Transformation
+    chessboardShader->uploadUniformMatrix4("projection", projectionMatrix);
+    chessboardShader->uploadUniformMatrix4("view", viewMatrix);
+    chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
+
+    // Board size
+    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
+
+    auto object = framework::VertexArrayObjectBuilder<Chessboard::Vertex>{
         .shader = chessboardShader,
         .attributes = {
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
-        .triangles = chesboardTriangles
+        .vertices = chesboardVertices,
+        .indices = chessboardIndices
     }.build();
 
+    return {
+        .object = object,
+        .selectedTile = {0, 0}
+    };
+}
+
+struct Cube {
+    struct Vertex {
+        /// Vertex position
+        glm::vec3 position;
+    };
+
+    GLFWwindow *window;
+    const framework::VertexArrayObject<Vertex> object;
+
+    void draw() const {
+        // Set model matrix
+        glm::dvec2 cursorPosition;
+        glfwGetCursorPos(window, &cursorPosition.x, &cursorPosition.y);
+
+        auto modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.2f, 0.f));
+        modelMatrix *= glm::eulerAngleXY((float) cursorPosition.y / 500.f, (float) cursorPosition.x / 500.f);
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+
+        object.shader->uploadUniformMatrix4("model", modelMatrix);
+
+        // Draw fill
+        object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 1.f});
+        object.draw();
+
+        // Draw wireframe
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        object.shader->uploadUniformFloat4("color", {0.f, 0.f, 0.f, 1.f});
+        object.draw();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    void free() {
+        object.free();
+    }
+};
+
+Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
+    // language=glsl
+    const std::string vertexShaderSource = R"(
+        #version 450 core
+
+        layout(location = 0) in vec3 position;
+
+        uniform mat4 projection;
+        uniform mat4 view;
+        uniform mat4 model;
+
+        void main() {
+            gl_Position = projection * view * model * vec4(position.xyz, 1.0);
+        }
+    )";
+
+    // language=glsl
+    const std::string fragmentShaderSource = R"(
+        #version 450 core
+        out vec4 fragment_color;
+
+        uniform vec4 color;
+
+        void main() {
+            fragment_color = color;
+        }
+    )";
+
+    auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+
+    // Chessboard mesh
+    auto cubeVertices =
+        framework::unitCube.vertices | std::views::transform([](auto position) {
+            return Cube::Vertex{
+                .position = position
+            };
+        });
+    auto cubeIndices = framework::unitCube.indices;
+
+    // Transformation, model is set in draw()
+    cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
+    cubeShader->uploadUniformMatrix4("view", viewMatrix);
+
+    auto object = framework::VertexArrayObjectBuilder<Cube::Vertex>{
+        .shader = cubeShader,
+        .attributes = {
+            {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
+        },
+        .vertices = {cubeVertices.begin(), cubeVertices.end()},
+        .indices = cubeIndices
+    }.build();
+
+    return {
+        .window = window,
+        .object = object,
+    };
+}
+
+
+int main() {
+    int width = 800;
+    int height = 600;
+
+    auto window = framework::createWindow(width, height, "Lab 3");
+
     // Projection matrix
-    auto projectionMatrix = glm::perspective(glm::radians(45.f), 1.f, 1.f, -10.f);
-    chessboardShader->uploadUniformMatrix4("projection", projectionMatrix);
+    float aspectRatio = (float) width / (float) height;
+    auto projectionMatrix = glm::perspective(glm::radians(45.f), aspectRatio, 1.f, -10.f);
 
     // View matrix
     glm::vec3 position = {0.f, 0.f, 5.f};
@@ -134,67 +288,29 @@ int main() {
         up
     );
 
-    chessboardShader->uploadUniformMatrix4("view", viewMatrix);
+    // TODO: Static to access in callback, probably bad hack?
+    static auto chessboard = createChessboard(projectionMatrix, viewMatrix);
+    auto cube = createCube(window, projectionMatrix, viewMatrix);
 
-    // Model
-    auto chessboardModelMatrix = glm::mat4(1.0f);
-    chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
-    chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
-    chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
-
-    chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
-
-    // Board size
-    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
-
-    // Clear color
-    glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
-
-    // State of selected tile
-    glm::ivec2 selectedTile = {0, 0};
-
-    // Store selected tile in glfw user pointer to access in callback, will probably store the whole game state in
-    // the future?
-    glfwSetWindowUserPointer(window, &selectedTile);
+    // Handle input
     auto keyCallback = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-        auto selectedTile = static_cast<glm::ivec2 *>(glfwGetWindowUserPointer(window));
-
-        if (action == GLFW_PRESS) {
-            switch (key) {
-                case GLFW_KEY_LEFT:
-                    if (selectedTile->x > 0) selectedTile->x -= 1;
-                    break;
-
-                case GLFW_KEY_RIGHT:
-                    if (selectedTile->x < BOARD_SIZE - 1) selectedTile->x += 1;
-                    break;
-
-                case GLFW_KEY_UP:
-                    if (selectedTile->y > 0) selectedTile->y -= 1;
-                    break;
-
-                case GLFW_KEY_DOWN:
-                    if (selectedTile->y < BOARD_SIZE - 1) selectedTile->y += 1;
-                    break;
-
-                default:
-                    break;
-            }
-        }
+        chessboard.handleKeyInput(key, action);
     };
 
     glfwSetKeyCallback(window, keyCallback);
+
+    glEnable(GL_DEPTH_TEST);
+    // Clear color
+    glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
 
     // Event loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        // Set selected_tile uniform
-        chessboardShader->uploadUniformInt2("selected_tile", selectedTile);
-
         // Draw
-        glClear(GL_COLOR_BUFFER_BIT);
-        object.draw();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        chessboard.draw();
+        cube.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
@@ -204,7 +320,7 @@ int main() {
         if (isPressingEscape) break;
     }
 
-    object.free();
+    chessboard.free();
 
     glfwTerminate();
 

@@ -12,13 +12,6 @@
 #include "Shader.h"
 
 namespace framework {
-    template<typename VertexType>
-    struct Triangle {
-        VertexType a;
-        VertexType b;
-        VertexType c;
-    };
-
     /**
      * Specifies layout of a specific vertex attribute
      */
@@ -43,9 +36,7 @@ namespace framework {
      */
     template<typename VertexType>
     struct VertexArrayObject {
-        using TriangleType = Triangle<VertexType>;
-
-        const std::vector<TriangleType> triangles;
+        const std::vector<VertexType> vertices;
         const std::vector<IndexType> indices;
 
         const std::shared_ptr<Shader> shader;
@@ -53,13 +44,13 @@ namespace framework {
         const uint32_t vertexBufferId;
         const uint32_t indexBufferId;
 
-        void draw() {
+        void draw() const {
             glUseProgram(shader->id);
             glBindVertexArray(vertexArrayId);
             glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
         }
-
-        void free() {
+        
+        void free() const {
             glDeleteBuffers(1, &vertexBufferId);
             glDeleteBuffers(1, &indexBufferId);
             glDeleteVertexArrays(1, &vertexArrayId);
@@ -74,11 +65,9 @@ namespace framework {
      */
     template<typename VertexType>
     struct VertexArrayObjectBuilder {
-        using TriangleType = Triangle<VertexType>;
-
         std::shared_ptr<Shader> shader;
         std::vector<VertexAttribute> attributes;
-        std::vector<TriangleType> triangles;
+        std::vector<VertexType> vertices;
         std::optional<std::vector<IndexType>> indices;
 
         VertexArrayObject<VertexType> build() {
@@ -91,11 +80,11 @@ namespace framework {
             glCreateBuffers(1, &indexBufferId);
 
             // TODO: Should only generate indices if indices arent provided, some sort of lazy way?
-            auto indexGenerator = std::views::iota(0u, (IndexType) triangles.size() * 3);
+            auto indexGenerator = std::views::iota(0u, (IndexType) vertices.size());
             std::vector<IndexType> generatedIndices = {indexGenerator.begin(), indexGenerator.end()};
 
             VertexArrayObject<VertexType> builtObject{
-                .triangles = std::move(triangles),
+                .vertices = std::move(vertices),
                 .indices = std::move(indices.value_or(generatedIndices)),
                 .shader = shader,
                 .vertexArrayId = vertexArrayId,
@@ -106,8 +95,8 @@ namespace framework {
             // Vertex buffer
             glNamedBufferData(
                 vertexBufferId,
-                builtObject.triangles.size() * sizeof(TriangleType),
-                builtObject.triangles.data(),
+                builtObject.vertices.size() * sizeof(VertexType),
+                builtObject.vertices.data(),
                 GL_STATIC_DRAW
             );
 

@@ -20,7 +20,7 @@ int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height, "Lab 1");
+    auto window = framework::createWindow(width, height, "Lab 2");
 
     // Chessboard mesh
     std::vector<framework::Triangle<Vertex>> chesboardTriangles = {
@@ -166,7 +166,7 @@ int main() {
 
         // Set selected_tile uniform
         chessboardShader->uploadUniformInt2("selected_tile", selectedTile);
-        
+
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
         object.draw();
