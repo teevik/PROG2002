@@ -1,10 +1,13 @@
-#ifndef PROG2002_OBJECT_H
-#define PROG2002_OBJECT_H
+#ifndef PROG2002_VERTEXARRAYOBJECT_H
+#define PROG2002_VERTEXARRAYOBJECT_H
 
 #include <vector>
 #include <cstdint>
 #include <string>
 #include <memory>
+#include <optional>
+#include <ranges>
+#include <iostream>
 #include "glad/glad.h"
 #include "Shader.h"
 
@@ -33,83 +36,80 @@ namespace framework {
         bool normalize;
     };
 
-
-    /// A mesh that can't change
-    template<typename VertexType>
-    struct StaticMesh {
-        using TriangleType = Triangle<VertexType>;
-
-        const std::vector<TriangleType> triangles;
-    };
+    using IndexType = uint32_t;
 
     /**
-     * An object that can be drawed
+     * An vertex array object that can be drawed
      */
     template<typename VertexType>
-    struct Object {
+    struct VertexArrayObject {
         using TriangleType = Triangle<VertexType>;
 
         const std::vector<TriangleType> triangles;
+        const std::vector<IndexType> indices;
 
         const std::shared_ptr<Shader> shader;
-        const uint32_t vertexBufferId;
         const uint32_t vertexArrayId;
+        const uint32_t vertexBufferId;
+        const uint32_t indexBufferId;
 
         void draw() {
             glUseProgram(shader->id);
             glBindVertexArray(vertexArrayId);
-            glDrawArrays(GL_TRIANGLES, 0, triangles.size() * 3);
-            // glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
         }
 
         void free() {
             glDeleteBuffers(1, &vertexBufferId);
+            glDeleteBuffers(1, &indexBufferId);
             glDeleteVertexArrays(1, &vertexArrayId);
         }
     };
 
     /**
-     * A builder for object, contains the following:
+     * A builder for VertexArrayObject, contains the following:
      * - One shader
      * - One list of vertex attributes
      * - Multiple static meshes
      */
     template<typename VertexType>
-    struct ObjectBuilder {
+    struct VertexArrayObjectBuilder {
         using TriangleType = Triangle<VertexType>;
-        using StaticMeshType = StaticMesh<VertexType>;
 
         std::shared_ptr<Shader> shader;
         std::vector<VertexAttribute> attributes;
-        std::vector<StaticMeshType> staticMeshes;
+        std::vector<TriangleType> triangles;
+        std::optional<std::vector<IndexType>> indices;
 
-        Object<VertexType> build() {
-            std::vector<TriangleType> triangles;
-            for (auto &staticMesh: staticMeshes) {
-                triangles.insert(triangles.end(), staticMesh.triangles.begin(), staticMesh.triangles.end());
-            }
-
+        VertexArrayObject<VertexType> build() {
             uint32_t vertexArrayId;
             uint32_t vertexBufferId;
+            uint32_t indexBufferId;
 
             glCreateVertexArrays(1, &vertexArrayId);
             glCreateBuffers(1, &vertexBufferId);
-            // glCreateBuffers(1, &indexBufferId);
+            glCreateBuffers(1, &indexBufferId);
 
-            Object<VertexType> builtObject{
+            // TODO: Should only generate indices if indices arent provided, some sort of lazy way?
+            auto indexGenerator = std::views::iota(0u, (IndexType) triangles.size() * 3);
+            std::vector<IndexType> generatedIndices = {indexGenerator.begin(), indexGenerator.end()};
+
+            VertexArrayObject<VertexType> builtObject{
                 .triangles = std::move(triangles),
+                .indices = std::move(indices.value_or(generatedIndices)),
                 .shader = shader,
+                .vertexArrayId = vertexArrayId,
                 .vertexBufferId = vertexBufferId,
-                .vertexArrayId = vertexArrayId
+                .indexBufferId = indexBufferId
             };
 
+            // Vertex buffer
             glNamedBufferData(
                 vertexBufferId,
                 builtObject.triangles.size() * sizeof(TriangleType),
                 builtObject.triangles.data(),
                 GL_STATIC_DRAW
             );
-            // glnamedBufferData(indexBufferId, sizeof(indices), GL_STATIC_DRAW);
 
             for (int attributeIndex = 0; attributeIndex < attributes.size(); ++attributeIndex) {
                 VertexAttribute vertexAttribute = attributes[attributeIndex];
@@ -134,10 +134,20 @@ namespace framework {
                 sizeof(VertexType)
             );
 
+            // Index buffer
+            glNamedBufferData(
+                indexBufferId,
+                builtObject.indices.size() * sizeof(IndexType),
+                builtObject.indices.data(),
+                GL_STATIC_DRAW
+            );
+
+            glVertexArrayElementBuffer(vertexArrayId, indexBufferId);
+
             return builtObject;
         }
     };
 }
 
 
-#endif //PROG2002_OBJECT_H
+#endif //PROG2002_VERTEXARRAYOBJECT_H

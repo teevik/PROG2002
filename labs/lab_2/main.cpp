@@ -54,8 +54,6 @@ int main() {
         }
     };
 
-    framework::StaticMesh<Vertex> chessboardMesh{.triangles = {chesboardTriangles.begin(), chesboardTriangles.end()}};
-
     // language=glsl
     const std::string vertexShaderSource = R"(
         #version 450 core
@@ -107,15 +105,13 @@ int main() {
     std::shared_ptr<framework::Shader> chessboardShader(
         new framework::Shader(vertexShaderSource, fragmentShaderSource));
 
-    auto object = framework::ObjectBuilder<Vertex>{
+    auto object = framework::VertexArrayObjectBuilder<Vertex>{
         .shader = chessboardShader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
         },
-        .staticMeshes = {
-            chessboardMesh
-        },
+        .triangles = chesboardTriangles
     }.build();
 
     // Projection

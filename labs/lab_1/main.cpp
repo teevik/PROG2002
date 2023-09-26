@@ -36,7 +36,6 @@ int main() {
             .color = {1.f, 0.f, 1.f, 1.f}
         }
     };
-    framework::StaticMesh<Vertex> triangleMesh{.triangles = {triangle}};
 
     // Circle
     glm::vec2 circlePosition = {1.f, -1.f};
@@ -59,8 +58,6 @@ int main() {
                 }
             };
         });
-
-    framework::StaticMesh<Vertex> circleMesh{.triangles = {circleTriangles.begin(), circleTriangles.end()}};
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -104,16 +101,17 @@ int main() {
 
     std::shared_ptr<framework::Shader> shader(new framework::Shader(vertexShaderSource, fragmentShaderSource));
 
-    auto object = framework::ObjectBuilder<Vertex>{
+    std::vector<framework::Triangle<Vertex>> mesh;
+    mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
+    mesh.push_back(triangle);
+
+    auto object = framework::VertexArrayObjectBuilder<Vertex>{
         .shader = shader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
-        .staticMeshes = {
-            triangleMesh,
-            circleMesh
-        },
+        .triangles = mesh
     }.build();
 
     // Projection
