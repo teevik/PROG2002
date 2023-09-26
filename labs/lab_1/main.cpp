@@ -99,7 +99,7 @@ int main() {
         }
     )";
 
-    std::shared_ptr<framework::Shader> shader(new framework::Shader(vertexShaderSource, fragmentShaderSource));
+    auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     std::vector<framework::Triangle<Vertex>> mesh;
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
@@ -117,9 +117,8 @@ int main() {
     // Projection
     float aspectRatio = (float) width / (float) height;
     auto projection = glm::ortho(-2.0f * aspectRatio, 2.0f * aspectRatio, -2.0f, 2.0f, -0.01f, 1.0f);
-    auto projectionLocation = glGetUniformLocation(object.shader->id, "projection");
-    assert(projectionLocation != -1);
-    glProgramUniformMatrix4fv(object.shader->id, projectionLocation, 1, false, &projection[0][0]);
+
+    shader->uploadUniformMatrix4("projection", projection);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
@@ -130,9 +129,7 @@ int main() {
 
         // Set time uniform
         auto time = (float) glfwGetTime();
-        int32_t timeLocation = glGetUniformLocation(object.shader->id, "time");
-        assert(timeLocation != -1);
-        glProgramUniform1f(object.shader->id, timeLocation, time);
+        shader->uploadUniformFloat1("time", time);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);

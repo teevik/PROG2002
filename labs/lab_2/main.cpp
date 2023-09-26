@@ -102,8 +102,7 @@ int main() {
         }
     )";
 
-    std::shared_ptr<framework::Shader> chessboardShader(
-        new framework::Shader(vertexShaderSource, fragmentShaderSource));
+    auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     auto object = framework::VertexArrayObjectBuilder<Vertex>{
         .shader = chessboardShader,
@@ -118,14 +117,10 @@ int main() {
     float aspectRatio = (float) width / (float) height;
     float scale = 1.5f;
     auto projection = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, -0.01f, 1.0f);
-    auto projectionLocation = glGetUniformLocation(object.shader->id, "projection");
-    assert(projectionLocation != -1);
-    glProgramUniformMatrix4fv(object.shader->id, projectionLocation, 1, false, &projection[0][0]);
+    chessboardShader->uploadUniformMatrix4("projection", projection);
 
     // Board size
-    auto boardSizeLocation = glGetUniformLocation(object.shader->id, "board_size");
-    assert(boardSizeLocation != -1);
-    glProgramUniform1i(object.shader->id, boardSizeLocation, BOARD_SIZE);
+    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
@@ -170,11 +165,8 @@ int main() {
         glfwPollEvents();
 
         // Set selected_tile uniform
-        auto selectedTileLocation = glGetUniformLocation(object.shader->id, "selected_tile");
-        assert(selectedTileLocation != -1);
-        glProgramUniform2i(object.shader->id, selectedTileLocation, selectedTile.x, selectedTile.y);
-
-
+        chessboardShader->uploadUniformInt2("selected_tile", selectedTile);
+        
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
         object.draw();
