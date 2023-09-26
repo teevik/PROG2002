@@ -87,6 +87,12 @@ namespace framework {
         glProgramUniform1f(id, location, value);
     }
 
+    void Shader::uploadUniformFloat4(const std::string &name, glm::vec4 value) const {
+        int32_t location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniform4f(id, location, value.r, value.g, value.b, value.a);
+    }
+
     void Shader::uploadUniformMatrix4(const std::string &name, glm::mat4 value) const {
         auto location = glGetUniformLocation(id, name.c_str());
         assert(location != -1);

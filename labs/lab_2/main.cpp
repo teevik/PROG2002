@@ -12,7 +12,10 @@
 const int BOARD_SIZE = 8;
 
 struct Vertex {
+    /// Vertex position
     glm::vec2 position;
+
+    /// Position between {0.f, 0.f} (top left corner) and {1.f, 1.f} (bottom right corner)
     glm::vec2 gridPosition;
 };
 
@@ -20,38 +23,35 @@ int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height, "Lab 1");
+    auto window = framework::createWindow(width, height, "Lab 2");
 
     // Chessboard mesh
-    std::vector<framework::Triangle<Vertex>> chesboardTriangles = {
-        {
-            .a = { // right top
-                .position = {1.f, 1.f},
-                .gridPosition = {1.f, 0.f}
-            },
-            .b = { // right bottom
-                .position = {1.f, -1.f},
-                .gridPosition = {1.f, 1.f}
-            },
-            .c = { // left top
-                .position = {-1.f, 1.f},
-                .gridPosition = {0.f, 0.f}
-            }
+    std::vector<Vertex> chessboardVertices = {
+        { // right top
+            .position = {1.f, 1.f},
+            .gridPosition = {1.f, 0.f}
         },
-        {
-            .a = { // right bottom
-                .position = {1.f, -1.f},
-                .gridPosition = {1.f, 1.f}
-            },
-            .b = { // left bottom
-                .position = {-1.f, -1.f},
-                .gridPosition = {0.f, 1.f}
-            },
-            .c = { // left top
-                .position = {-1.f, 1.f},
-                .gridPosition = {0.f, 0.f}
-            }
-        }
+        { // right bottom
+            .position = {1.f, -1.f},
+            .gridPosition = {1.f, 1.f}
+        },
+        { // left top
+            .position = {-1.f, 1.f},
+            .gridPosition = {0.f, 0.f}
+        },
+        { // left bottom
+            .position = {-1.f, -1.f},
+            .gridPosition = {0.f, 1.f}
+        },
+    };
+
+    std::vector<uint32_t> chessboardIndices = {
+        0, // right top
+        1, // right bottom
+        2, // left top
+        1, // right bottom
+        3, // left bottom
+        2 // left top
     };
 
     // language=glsl
@@ -110,7 +110,8 @@ int main() {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
         },
-        .triangles = chesboardTriangles
+        .vertices = chessboardVertices,
+        .indices = chessboardIndices
     }.build();
 
     // Projection
@@ -166,7 +167,7 @@ int main() {
 
         // Set selected_tile uniform
         chessboardShader->uploadUniformInt2("selected_tile", selectedTile);
-        
+
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
         object.draw();

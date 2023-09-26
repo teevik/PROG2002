@@ -22,20 +22,13 @@ int main() {
     auto window = framework::createWindow(width, height, "Lab 1");
 
     // Triangle
-    auto triangle = framework::Triangle<Vertex>{
-        .a = {
-            .position = framework::unitTriangle2d.a,
-            .color = {1.f, 1.f, 0.f, 1.f}
-        },
-        .b = {
-            .position = framework::unitTriangle2d.b,
-            .color = {0.f, 1.f, 1.f, 1.f}
-        },
-        .c = {
-            .position = framework::unitTriangle2d.c,
-            .color = {1.f, 0.f, 1.f, 1.f}
-        }
-    };
+    auto triangle = framework::unitTriangle | std::views::transform([](auto position) {
+        return Vertex{
+            .position = position,
+            .color = {1.f, position.x, position.y, 1.f}
+        };
+    });
+
 
     // Circle
     glm::vec2 circlePosition = {1.f, -1.f};
@@ -43,19 +36,9 @@ int main() {
 
     auto circleTriangles =
         framework::generateCircleMesh(32) | std::views::transform([circleColor, circlePosition](auto position) {
-            return framework::Triangle<Vertex>{
-                .a = {
-                    .position = circlePosition + position.a,
-                    .color = circleColor
-                },
-                .b = {
-                    .position = circlePosition + position.b,
-                    .color = circleColor
-                },
-                .c = {
-                    .position = circlePosition + position.c,
-                    .color = circleColor
-                }
+            return Vertex{
+                .position = circlePosition + position,
+                .color = circleColor
             };
         });
 
@@ -101,9 +84,9 @@ int main() {
 
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    std::vector<framework::Triangle<Vertex>> mesh;
+    std::vector<Vertex> mesh;
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
-    mesh.push_back(triangle);
+    mesh.insert(mesh.end(), triangle.begin(), triangle.end());
 
     auto object = framework::VertexArrayObjectBuilder<Vertex>{
         .shader = shader,
@@ -111,7 +94,7 @@ int main() {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
-        .triangles = mesh
+        .vertices = mesh
     }.build();
 
     // Projection
