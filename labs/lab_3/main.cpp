@@ -12,7 +12,6 @@
 
 const int BOARD_SIZE = 8;
 
-
 struct Chessboard {
     struct Vertex {
         /// Vertex position
@@ -114,7 +113,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     // Chessboard mesh
-    std::vector<Chessboard::Vertex> chesboardVertices = {
+    std::vector<Chessboard::Vertex> chessboardVertices = {
         { // right top
             .position = {1.f, 1.f},
             .gridPosition = {1.f, 0.f}
@@ -161,7 +160,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
-        .vertices = chesboardVertices,
+        .vertices = chessboardVertices,
         .indices = chessboardIndices
     }.build();
 
@@ -265,7 +264,6 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
         .object = object,
     };
 }
-
 
 int main() {
     int width = 800;
