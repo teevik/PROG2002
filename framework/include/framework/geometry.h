@@ -11,6 +11,19 @@ namespace framework {
         .c = {0.0f, 0.5f}
     };
 
+    static const std::vector<framework::Triangle<glm::vec2>> quad2d = {
+        {
+            .a = {1.f, 1.f}, // top right
+            .b = {1.f, -1.f}, // bottom right
+            .c = {-1.f, 1.f} // top left
+        },
+        {
+            .a = {1.f, -1.f}, // bottom right
+            .b = {-1.f, -1.f}, // bottom left
+            .c = {-1.f, 1.f} // top left
+        }
+    };
+
     /**
      * Generate a unit circle mesh
      * @param resolution amount of triangles
