@@ -2,7 +2,6 @@
 #include <vector>
 #include <memory>
 #include <ranges>
-#include <iostream>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/ext/matrix_clip_space.hpp"
@@ -20,7 +19,7 @@ int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height);
+    auto window = framework::createWindow(width, height, "Lab 1");
 
     // Triangle
     auto triangle = framework::Triangle<Vertex>{
@@ -37,12 +36,10 @@ int main() {
             .color = {1.f, 0.f, 1.f, 1.f}
         }
     };
-    framework::StaticMesh<Vertex> triangleMesh{.triangles = {triangle}};
-
 
     // Circle
     glm::vec2 circlePosition = {1.f, -1.f};
-    auto circleColor = glm::vec4(1.f, 1.f, 1.f, 1.f);
+    glm::vec4 circleColor = {1.f, 1.f, 1.f, 1.f};
 
     auto circleTriangles =
         framework::generateCircleMesh(32) | std::views::transform([circleColor, circlePosition](auto position) {
@@ -61,8 +58,6 @@ int main() {
                 }
             };
         });
-
-    framework::StaticMesh<Vertex> circleMesh{.triangles = {circleTriangles.begin(), circleTriangles.end()}};
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -104,26 +99,26 @@ int main() {
         }
     )";
 
-    std::shared_ptr<framework::Shader> shader(new framework::Shader(vertexShaderSource, fragmentShaderSource));
+    auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::ObjectBuilder<Vertex>{
+    std::vector<framework::Triangle<Vertex>> mesh;
+    mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
+    mesh.push_back(triangle);
+
+    auto object = framework::VertexArrayObjectBuilder<Vertex>{
         .shader = shader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
-        .staticMeshes = {
-            triangleMesh,
-            circleMesh
-        },
+        .triangles = mesh
     }.build();
 
     // Projection
     float aspectRatio = (float) width / (float) height;
     auto projection = glm::ortho(-2.0f * aspectRatio, 2.0f * aspectRatio, -2.0f, 2.0f, -0.01f, 1.0f);
-    auto projectionLocation = glGetUniformLocation(object.shader->id, "projection");
-    assert(projectionLocation != -1);
-    glProgramUniformMatrix4fv(object.shader->id, projectionLocation, 1, false, &projection[0][0]);
+
+    shader->uploadUniformMatrix4("projection", projection);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
@@ -134,9 +129,7 @@ int main() {
 
         // Set time uniform
         auto time = (float) glfwGetTime();
-        int32_t timeLocation = glGetUniformLocation(object.shader->id, "time");
-        assert(timeLocation != -1);
-        glProgramUniform1f(object.shader->id, timeLocation, time);
+        shader->uploadUniformFloat1("time", time);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);

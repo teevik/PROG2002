@@ -3,6 +3,7 @@
 #include <memory>
 #include <iostream>
 #include <optional>
+#include <cassert>
 
 /**
  * @param source
@@ -67,5 +68,28 @@ namespace framework {
     Shader::~Shader() {
         glDeleteProgram(id);
     }
-}
 
+    void Shader::uploadUniformInt1(const std::string &name, int value) const {
+        int32_t location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniform1i(id, location, value);
+    }
+
+    void Shader::uploadUniformInt2(const std::string &name, glm::ivec2 value) const {
+        auto location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniform2i(id, location, value.x, value.y);
+    }
+
+    void Shader::uploadUniformFloat1(const std::string &name, float value) const {
+        int32_t location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniform1f(id, location, value);
+    }
+
+    void Shader::uploadUniformMatrix4(const std::string &name, glm::mat4 value) const {
+        auto location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniformMatrix4fv(id, location, 1, false, &value[0][0]);
+    }
+}

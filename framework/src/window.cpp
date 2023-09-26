@@ -27,7 +27,7 @@ static void GLAPIENTRY debugMessageCallback(
 }
 
 namespace framework {
-    GLFWwindow *createWindow(int width, int height) {
+    GLFWwindow *createWindow(int width, int height, const std::string &title) {
         glfwSetErrorCallback(glfwErrorCallback);
 
         auto didInitializeGlfw = glfwInit();
@@ -45,7 +45,7 @@ namespace framework {
         auto window = glfwCreateWindow(
             width,
             height,
-            "Hello world",
+            title.c_str(),
             nullptr,
             nullptr
         );

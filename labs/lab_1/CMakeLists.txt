@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.15)
 # Declare a new project named 'example_1'. This sets various variables
 # related to the project and provides a context for the following CMake
 # commands.
-project(lab1)
+project(lab_1)
 
 # Search for the OpenGL package on the system. The REQUIRED argument
 # ensures that if OpenGL is not found, CMake will produce an error and
