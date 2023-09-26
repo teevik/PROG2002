@@ -24,7 +24,6 @@ namespace framework {
         void uploadUniformFloat1(const std::string &name, float value) const;
 
         void uploadUniformMatrix4(const std::string &name, glm::mat4 value) const;
-
     };
 }
 
