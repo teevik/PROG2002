@@ -28,8 +28,6 @@ add_executable(${PROJECT_NAME} main.cpp)
 #               provided by the find_package(OpenGL) command.
 target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL stb framework)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION)
-
 add_custom_command(
         TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

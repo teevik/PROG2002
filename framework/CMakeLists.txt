@@ -9,7 +9,11 @@ add_library(framework
         include/framework/VertexArrayObject.h
         include/framework/Shader.h
         include/framework/window.h
-        src/geometry.cpp)
+        src/geometry.cpp
+        include/framework/Texture.h
+        src/Texture.cpp)
 target_include_directories(framework PUBLIC include)
 
-target_link_libraries(framework PUBLIC glad glfw glm)
+target_link_libraries(framework PUBLIC glad glfw glm stb)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION)
