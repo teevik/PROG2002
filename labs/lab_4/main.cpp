@@ -9,6 +9,7 @@
 #include "framework/geometry.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "stb_image.h"
 
 const int BOARD_SIZE = 8;
 
@@ -16,6 +17,9 @@ struct Chessboard {
     struct Vertex {
         /// Vertex position
         glm::vec2 position;
+
+        /// Texture coordinate
+        glm::vec2 textureCoordinate;
 
         /// Position between {0.f, 0.f} (top left corner) and {1.f, 1.f} (bottom right corner)
         glm::vec2 gridPosition;
@@ -25,7 +29,7 @@ struct Chessboard {
     glm::ivec2 selectedTile;
 
     void draw() const {
-        object.shader->uploadUniformInt2("selected_tile", selectedTile);
+//        object.shader->uploadUniformInt2("selected_tile", selectedTile);
         object.draw();
     }
 
@@ -65,9 +69,11 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
         #version 450 core
 
         layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 grid_position;
+        layout(location = 1) in vec2 texture_coordinate;
+        layout(location = 2) in vec2 grid_position;
 
         out VertexData {
+            vec2 texture_coordinate;
             vec2 grid_position;
         } vertex_data;
 
@@ -76,6 +82,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
         uniform mat4 model;
 
         void main() {
+            vertex_data.texture_coordinate = texture_coordinate;
             vertex_data.grid_position = grid_position;
             gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
         }
@@ -86,11 +93,13 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
         #version 450 core
 
         in VertexData {
+            vec2 texture_coordinate;
             vec2 grid_position;
         } vertex_data;
 
         out vec4 color;
 
+        layout(binding=0) uniform sampler2D texture_sampler;
         uniform int board_size;
         uniform ivec2 selected_tile;
 
@@ -104,9 +113,11 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
             bool is_black = tile_index.x % 2 == tile_index.y % 2;
             bool is_selected = tile_index == selected_tile;
 
-            color = is_selected ? green : (
-                is_black ? black : white
-            );
+//            color = is_selected ? green : (
+//                is_black ? black : white
+//            );
+
+            color = texture(texture_sampler, vertex_data.texture_coordinate);
         }
     )";
 
@@ -116,18 +127,22 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     std::vector<Chessboard::Vertex> chessboardVertices = {
         { // right top
             .position = {1.f, 1.f},
+            .textureCoordinate = {1.f, 0.f},
             .gridPosition = {1.f, 0.f}
         },
         { // right bottom
             .position = {1.f, -1.f},
+            .textureCoordinate = {1.f, 1.f},
             .gridPosition = {1.f, 1.f}
         },
         { // left top
             .position = {-1.f, 1.f},
+            .textureCoordinate = {0.f, 0.f},
             .gridPosition = {0.f, 0.f}
         },
         { // left bottom
             .position = {-1.f, -1.f},
+            .textureCoordinate = {0.f, 1.f},
             .gridPosition = {0.f, 1.f}
         },
     };
@@ -152,12 +167,13 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size
-    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
+//    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
     auto object = framework::VertexArrayObjectBuilder<Chessboard::Vertex>{
         .shader = chessboardShader,
         .attributes = {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, textureCoordinate)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
         .vertices = chessboardVertices,
@@ -268,7 +284,7 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
 int main() {
     int width = 800;
     int height = 600;
-    
+
     auto window = framework::createWindow(width, height, "Lab 3");
 
     // Projection matrix
@@ -285,6 +301,31 @@ int main() {
         target,
         up
     );
+
+    int imageWidth, imageHeight, bpp;
+    auto filepath = std::string(TEXTURES_DIR) + std::string("wood.png");
+    auto pixels = stbi_load(filepath.c_str(), &imageWidth, &imageHeight, &bpp, STBI_rgb_alpha);
+    if (!pixels) {
+        std::cerr << "Failed to load texture" << std::endl;
+        return 0;
+    }
+
+    uint32_t tex;
+    glCreateTextures(GL_TEXTURE_2D, 1, &tex);
+
+    // Filtering
+    glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Wrapping
+    glTextureParameteri(tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTextureStorage2D(tex, 1, GL_RGBA8, imageWidth, imageHeight);
+    glTextureSubImage2D(tex, 0, 0, 0, imageWidth, imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+
+    glBindTextureUnit(0, tex);
 
     // TODO: Static to access in callback, probably bad hack?
     static auto chessboard = createChessboard(projectionMatrix, viewMatrix);
@@ -319,6 +360,7 @@ int main() {
     }
 
     chessboard.free();
+    stbi_image_free(pixels);
 
     glfwTerminate();
 

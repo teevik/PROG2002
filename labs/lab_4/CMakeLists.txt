@@ -26,7 +26,9 @@ add_executable(${PROJECT_NAME} main.cpp)
 # - glad: A library to load OpenGL extensions.
 # - OpenGL::GL: This is an imported target for the main OpenGL library
 #               provided by the find_package(OpenGL) command.
-target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL framework)
+target_link_libraries(${PROJECT_NAME} glm glfw glad OpenGL::GL stb framework)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION)
 
 add_custom_command(
         TARGET ${PROJECT_NAME} POST_BUILD
