@@ -15,7 +15,7 @@ void Cube::draw() const {
     object.shader->uploadUniformMatrix4("model", modelMatrix);
 
     // Draw fill
-    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 1.f});
+    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 0.5f});
     object.draw();
 
     // Draw wireframe
