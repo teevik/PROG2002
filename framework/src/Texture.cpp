@@ -2,6 +2,26 @@
 #include "framework/Texture.h"
 #include "glad/glad.h"
 
+struct Pixels {
+    int width;
+    int height;
+    stbi_uc *pixels;
+};
+
+static Pixels loadPixels(const std::string &path) {
+    int width, height, bpp;
+    auto pixels = stbi_load(path.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
+    if (!pixels) {
+        throw std::runtime_error("Failed to load pixels");
+    }
+
+    return {
+        .width = width,
+        .height = height,
+        .pixels = pixels
+    };
+}
+
 namespace framework {
     void Texture::free() const {
         glDeleteTextures(1, &id);
@@ -17,11 +37,7 @@ namespace framework {
         Filtering filtering,
         Wrapping wrapping
     ) {
-        int imageWidth, imageHeight, bpp;
-        auto pixels = stbi_load(path.c_str(), &imageWidth, &imageHeight, &bpp, STBI_rgb_alpha);
-        if (!pixels) {
-            throw std::runtime_error("Failed to load texture");
-        }
+        auto [imageWidth, imageHeight, pixels] = loadPixels(path);
 
         uint32_t textureId;
         glCreateTextures(GL_TEXTURE_2D, 1, &textureId);
@@ -67,11 +83,7 @@ namespace framework {
         Filtering filtering,
         Wrapping wrapping
     ) {
-        int imageWidth, imageHeight, bpp;
-        auto pixels = stbi_load(path.c_str(), &imageWidth, &imageHeight, &bpp, STBI_rgb_alpha);
-        if (!pixels) {
-            throw std::runtime_error("Failed to load texture");
-        }
+        auto [imageWidth, imageHeight, pixels] = loadPixels(path);
 
         uint32_t textureId;
         glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &textureId);
