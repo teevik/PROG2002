@@ -49,7 +49,7 @@ namespace framework {
             glBindVertexArray(vertexArrayId);
             glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
         }
-        
+
         void free() const {
             glDeleteBuffers(1, &vertexBufferId);
             glDeleteBuffers(1, &indexBufferId);
