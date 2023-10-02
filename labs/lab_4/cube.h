@@ -9,6 +9,7 @@
 #include "framework/geometry.h"
 #include "glm/gtx/euler_angles.hpp"
 #include "GLFW/glfw3.h"
+#include "framework/Camera.h"
 
 struct Cube {
     struct Vertex {
@@ -25,6 +26,6 @@ struct Cube {
     void free();
 };
 
-Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix);
+Cube createCube(GLFWwindow *window, framework::Camera camera);
 
 #endif //PROG2002_CUBE_H

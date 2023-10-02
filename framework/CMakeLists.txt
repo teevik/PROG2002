@@ -11,7 +11,9 @@ add_library(framework
         include/framework/window.h
         src/geometry.cpp
         include/framework/Texture.h
-        src/Texture.cpp)
+        src/Texture.cpp
+        include/framework/Camera.h
+        src/Camera.cpp)
 target_include_directories(framework PUBLIC include)
 
 target_link_libraries(framework PUBLIC glad glfw glm stb)

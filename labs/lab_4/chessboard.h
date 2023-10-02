@@ -5,6 +5,7 @@
 #include "glm/vec2.hpp"
 #include "framework/VertexArrayObject.h"
 #include "framework/Texture.h"
+#include "framework/Camera.h"
 
 const int BOARD_SIZE = 8;
 
@@ -34,6 +35,6 @@ struct Chessboard {
     }
 };
 
-Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix);
+Chessboard createChessboard(framework::Camera camera);
 
 #endif //PROG2002_CHESSBOARD_H

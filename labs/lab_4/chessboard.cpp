@@ -4,6 +4,7 @@
 #include "framework/Texture.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "GLFW/glfw3.h"
+#include "framework/Camera.h"
 
 void Chessboard::draw() const {
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
@@ -36,7 +37,7 @@ void Chessboard::handleKeyInput(int key, int action) {
     }
 }
 
-Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
+Chessboard createChessboard(framework::Camera camera) {
     // language=glsl
     const std::string vertexShaderSource = R"(
         #version 450 core
@@ -137,8 +138,8 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
 
     // Transformation
-    chessboardShader->uploadUniformMatrix4("projection", projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", viewMatrix);
+    chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix);
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size

@@ -8,6 +8,7 @@
 #include "framework/window.h"
 #include "chessboard.h"
 #include "cube.h"
+#include "framework/Camera.h"
 
 int main() {
     int width = 800;
@@ -15,24 +16,17 @@ int main() {
 
     auto window = framework::createWindow(width, height, "Lab 3");
 
-    // Projection matrix
+    // Camera
     float aspectRatio = (float) width / (float) height;
-    auto projectionMatrix = glm::perspective(glm::radians(45.f), aspectRatio, 1.f, -10.f);
-
-    // View matrix
     glm::vec3 position = {0.f, 0.f, 5.f};
     glm::vec3 target = {0.f, 0.f, 0.f};
     glm::vec3 up = {0.f, 1.f, 0.1f};
 
-    auto viewMatrix = glm::lookAt(
-        position,
-        target,
-        up
-    );
+    auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
     // TODO: Static to access in callback, probably bad hack?
-    static auto chessboard = createChessboard(projectionMatrix, viewMatrix);
-    auto cube = createCube(window, projectionMatrix, viewMatrix);
+    static auto chessboard = createChessboard(camera);
+    auto cube = createCube(window, camera);
 
     // Handle input
     auto keyCallback = [](GLFWwindow *window, int key, int scancode, int action, int mods) {

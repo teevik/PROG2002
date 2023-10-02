@@ -1,4 +1,5 @@
 #include "cube.h"
+#include "framework/Camera.h"
 
 void Cube::draw() const {
     texture.bind();
@@ -29,7 +30,7 @@ void Cube::free() {
     object.free();
 }
 
-Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
+Cube createCube(GLFWwindow *window, framework::Camera camera) {
     // language=glsl
     const std::string vertexShaderSource = R"(
         #version 450 core
@@ -80,8 +81,8 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
     auto cubeIndices = framework::unitCube.indices;
 
     // Transformation, model is set in draw()
-    cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
-    cubeShader->uploadUniformMatrix4("view", viewMatrix);
+    cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    cubeShader->uploadUniformMatrix4("view", camera.viewMatrix);
 
     auto object = framework::createVertexArrayObject<Cube::Vertex>(
         cubeShader,
