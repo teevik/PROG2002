@@ -69,6 +69,7 @@ add_subdirectory(examples/example_5)
 add_subdirectory(labs/lab_1)
 add_subdirectory(labs/lab_2)
 add_subdirectory(labs/lab_3)
+add_subdirectory(labs/lab_4)
 
 # Add a subdirectory for assignments. Like the framework, this is commented out,
 # potentially to be enabled later when assignments are ready.

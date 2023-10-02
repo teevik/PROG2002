@@ -104,15 +104,15 @@ int main() {
 
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArrayObjectBuilder<Vertex>{
-        .shader = chessboardShader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Vertex>(
+        chessboardShader,
+        {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
         },
-        .vertices = chessboardVertices,
-        .indices = chessboardIndices
-    }.build();
+        chessboardVertices,
+        chessboardIndices
+    );
 
     // Projection
     float aspectRatio = (float) width / (float) height;
