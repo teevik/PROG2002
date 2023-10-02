@@ -23,9 +23,16 @@ static Pixels loadPixels(const std::string &path) {
 }
 
 namespace framework {
-    void Texture::free() const {
-        glDeleteTextures(1, &id);
-        stbi_image_free(pixels);
+    Texture::Texture(uint32_t id, stbi_uc *pixels) : id(id), pixels(pixels) {}
+
+    Texture::Texture(Texture &&texture) noexcept: id(texture.id), pixels(texture.pixels) {
+        texture.id = 0;
+        texture.pixels = nullptr;
+    }
+
+    Texture::~Texture() {
+        if (id) glDeleteTextures(1, &id);
+        if (pixels) stbi_image_free((void *) pixels);
     }
 
     void Texture::bind() const {
@@ -72,10 +79,7 @@ namespace framework {
         glTextureStorage2D(textureId, 1, GL_RGBA8, imageWidth, imageHeight);
         glTextureSubImage2D(textureId, 0, 0, 0, imageWidth, imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-        return Texture{
-            .id = textureId,
-            .pixels = pixels
-        };
+        return {textureId, pixels};
     }
 
     Texture loadCubemap(
@@ -120,9 +124,6 @@ namespace framework {
             glTextureSubImage3D(textureId, 0, 0, 0, i, imageWidth, imageHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
         }
 
-        return Texture{
-            .id = textureId,
-            .pixels = pixels
-        };
+        return {textureId, pixels};
     }
 }

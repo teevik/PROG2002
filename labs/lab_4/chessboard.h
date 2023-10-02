@@ -31,7 +31,6 @@ struct Chessboard {
 
     void free() {
         object.free();
-        texture.free();
     }
 };
 

@@ -27,7 +27,6 @@ void Cube::draw() const {
 
 void Cube::free() {
     object.free();
-    texture.free();
 }
 
 Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
@@ -98,6 +97,6 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
     return {
         .window = window,
         .object = object,
-        .texture = texture
+        .texture = std::move(texture)
     };
 }

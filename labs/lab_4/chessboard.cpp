@@ -159,7 +159,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
 
     return {
         .object = object,
-        .texture = texture,
+        .texture = std::move(texture),
         .selectedTile = {0, 0}
     };
 }

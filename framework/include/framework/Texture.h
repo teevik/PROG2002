@@ -6,15 +6,6 @@
 #include "stb_image.h"
 
 namespace framework {
-    struct Texture {
-        uint32_t id;
-        stbi_uc *pixels;
-
-        void free() const;
-
-        void bind() const;
-    };
-
     enum class Filtering {
         Nearest,
         Linear
@@ -22,6 +13,25 @@ namespace framework {
 
     enum class Wrapping {
         Repeat
+    };
+
+    class Texture {
+    private:
+        uint32_t id;
+        stbi_uc *pixels;
+
+    public:
+        Texture(uint32_t id, stbi_uc *pixels);
+
+        Texture(Texture &&texture) noexcept;
+
+        ~Texture();
+
+        Texture(const Texture &) = delete;
+
+        Texture &operator=(const Texture &) = delete;
+
+        void bind() const;
     };
 
     Texture loadTexture(
