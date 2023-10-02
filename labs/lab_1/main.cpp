@@ -88,14 +88,15 @@ int main() {
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
     mesh.insert(mesh.end(), triangle.begin(), triangle.end());
 
-    auto object = framework::VertexArrayObjectBuilder<Vertex>{
-        .shader = shader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Vertex>(
+        shader,
+        {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 4, .offset = offsetof(Vertex, color)}
         },
-        .vertices = mesh
-    }.build();
+        mesh,
+        {}
+    );
 
     // Projection
     float aspectRatio = (float) width / (float) height;

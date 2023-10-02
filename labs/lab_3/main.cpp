@@ -154,15 +154,15 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::VertexArrayObjectBuilder<Chessboard::Vertex>{
-        .shader = chessboardShader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Chessboard::Vertex>(
+        chessboardShader,
+        {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
-        .vertices = chessboardVertices,
-        .indices = chessboardIndices
-    }.build();
+        chessboardVertices,
+        chessboardIndices
+    );
 
     return {
         .object = object,
@@ -250,14 +250,14 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
     cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
     cubeShader->uploadUniformMatrix4("view", viewMatrix);
 
-    auto object = framework::VertexArrayObjectBuilder<Cube::Vertex>{
-        .shader = cubeShader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Cube::Vertex>(
+        cubeShader,
+        {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
         },
-        .vertices = {cubeVertices.begin(), cubeVertices.end()},
-        .indices = cubeIndices
-    }.build();
+        {cubeVertices.begin(), cubeVertices.end()},
+        cubeIndices
+    );
 
     return {
         .window = window,
