@@ -83,14 +83,14 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
     cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
     cubeShader->uploadUniformMatrix4("view", viewMatrix);
 
-    auto object = framework::VertexArrayObjectBuilder<Cube::Vertex>{
-        .shader = cubeShader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Cube::Vertex>(
+        cubeShader,
+        {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
         },
-        .vertices = {cubeVertices.begin(), cubeVertices.end()},
-        .indices = cubeIndices
-    }.build();
+        {cubeVertices.begin(), cubeVertices.end()},
+        cubeIndices
+    );
 
     auto texture = framework::loadCubemap(TEXTURES_DIR + std::string("concrete.png"));
 

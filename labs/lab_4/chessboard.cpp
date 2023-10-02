@@ -144,16 +144,16 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::VertexArrayObjectBuilder<Chessboard::Vertex>{
-        .shader = chessboardShader,
-        .attributes = {
+    auto object = framework::createVertexArrayObject<Chessboard::Vertex>(
+        chessboardShader,
+        {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, textureCoordinates)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
-        .vertices = chessboardVertices,
-        .indices = chessboardIndices
-    }.build();
+        chessboardVertices,
+        chessboardIndices
+    );
 
     auto texture = framework::loadTexture(TEXTURES_DIR + std::string("wood.png"));
 
