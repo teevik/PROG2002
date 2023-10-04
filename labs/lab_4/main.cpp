@@ -14,7 +14,7 @@ int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height, "Lab 3");
+    auto window = framework::createWindow(width, height, "Lab 4");
 
     // Camera
     float aspectRatio = (float) width / (float) height;
