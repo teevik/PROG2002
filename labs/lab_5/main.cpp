@@ -37,11 +37,7 @@ int main() {
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
-
-    // Enable blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    
     // Clear color
     glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 

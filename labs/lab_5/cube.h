@@ -15,6 +15,9 @@ struct Cube {
     struct Vertex {
         /// Vertex position
         glm::vec3 position;
+
+        /// Vertex position
+        glm::vec3 normal;
     };
 
     GLFWwindow *window;

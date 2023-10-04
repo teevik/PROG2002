@@ -18,7 +18,7 @@ void Cube::draw(float ambientStrength) const {
     object.shader->uploadUniformMatrix4("model", modelMatrix);
 
     // Draw fill
-    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 0.5f});
+    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 1.f});
     object.draw();
 
     // Draw wireframe
@@ -38,9 +38,12 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
         #version 450 core
 
         layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 normal;
 
         out VertexData {
             vec3 position;
+            vec3 texture_coordinates;
+            vec3 normal;
         } vertex_data;
 
         uniform mat4 projection;
@@ -48,7 +51,10 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
         uniform mat4 model;
 
         void main() {
-            vertex_data.position = position;
+            vertex_data.position = (model * vec4(position, 1.0)).xyz;
+            vertex_data.texture_coordinates = position;
+            vertex_data.normal = normalize((model * vec4(normal, 1.0)).xyz);
+
             gl_Position = projection * view * model * vec4(position.xyz, 1.0);
         }
     )";
@@ -59,6 +65,8 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
 
         in VertexData {
             vec3 position;
+            vec3 texture_coordinates;
+            vec3 normal;
         } vertex_data;
 
         out vec4 fragment_color;
@@ -66,9 +74,18 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
         layout(binding=0) uniform samplerCube texture_sampler;
         uniform vec4 color;
         uniform float ambient_strength;
+        uniform vec3 light_source_position;
+        uniform vec3 light_color;
 
         void main() {
-            fragment_color = vec4(vec3(ambient_strength), 1) * texture(texture_sampler, vertex_data.position) * color;
+            vec4 ambient_color = vec4(vec3(ambient_strength), 1);
+
+            vec3 light_direction = normalize(vec3(light_source_position - vertex_data.position));
+            vec3 diffuse = light_color * max(dot(light_direction, vertex_data.normal), 0.0f);
+
+            vec4 diffuse_color = vec4(diffuse, 1);
+
+            fragment_color = ambient_color * diffuse_color * texture(texture_sampler, vertex_data.texture_coordinates) * color;
         }
     )";
 
@@ -76,12 +93,16 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
 
     // Chessboard mesh
     auto cubeVertices =
-        framework::unitCube.vertices | std::views::transform([](auto position) {
+        framework::generateUnitCubeWithNormals() | std::views::transform([](auto vertex) {
             return Cube::Vertex{
-                .position = position
+                .position = vertex.position,
+                .normal = vertex.normal
             };
         });
-    auto cubeIndices = framework::unitCube.indices;
+
+    // Diffuse illumination
+    cubeShader->uploadUniformFloat3("light_source_position", camera.position);
+    cubeShader->uploadUniformFloat3("light_color", {1.5, 1.5, 1.});
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
@@ -91,9 +112,10 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
+            {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, normal)},
         },
         {cubeVertices.begin(), cubeVertices.end()},
-        cubeIndices
+        {}
     );
 
     auto texture = framework::loadCubemap(TEXTURES_DIR + std::string("concrete.png"));

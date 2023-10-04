@@ -23,6 +23,8 @@ namespace framework {
 
         void uploadUniformFloat1(const std::string &name, float value) const;
 
+        void uploadUniformFloat3(const std::string &name, glm::vec3 value) const;
+
         void uploadUniformFloat4(const std::string &name, glm::vec4 value) const;
 
         void uploadUniformMatrix4(const std::string &name, glm::mat4 value) const;

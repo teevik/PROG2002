@@ -5,6 +5,11 @@
 #include "glm/vec2.hpp"
 
 namespace framework {
+    struct VertexWithNormal {
+        glm::vec3 position;
+        glm::vec3 normal;
+    };
+
     struct VerticesWithIndices {
         std::vector<glm::vec3> vertices;
         std::vector<uint32_t> indices;
@@ -61,6 +66,7 @@ namespace framework {
         }
     };
 
+    std::vector<VertexWithNormal> generateUnitCubeWithNormals();
 
     /**
      * Generate a unit circle mesh
