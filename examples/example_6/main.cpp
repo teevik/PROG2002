@@ -34,14 +34,21 @@ int main() {
     const std::string fragmentShaderSource = R"(
         #version 450 core
 
-        float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898,78.233)))* 43758.5453123);
-        }
-
         out vec4 color;
 
+        const vec4 white = vec4(1, 1, 1, 1);
+        const vec4 black = vec4(0, 0, 0, 1);
+
         void main() {
-            color = vec4(random(vec2(gl_PrimitiveID / 2, 0)), random(vec2(gl_PrimitiveID / 2, 1)), random(vec2(gl_PrimitiveID / 2, 2)), 1);
+            int index = gl_PrimitiveID/2;
+            int x = index % 8;
+            int y = index / 8;
+
+            ivec2 tile_index = ivec2(x, y);
+
+            bool is_black = tile_index.x % 2 == tile_index.y % 2;
+
+            color = is_black ? black : white;
         })";
 
     auto grid = framework::generateGridMesh(8);
