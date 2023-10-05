@@ -73,19 +73,31 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
 
         layout(binding=0) uniform samplerCube texture_sampler;
         uniform vec4 color;
-        uniform float ambient_strength;
         uniform vec3 light_source_position;
+        uniform vec3 camera_position;
+        uniform float ambient_strength;
         uniform vec3 light_color;
+        uniform vec3 specular_color;
 
         void main() {
-            vec4 ambient_color = vec4(vec3(ambient_strength), 1);
-
             vec3 light_direction = normalize(vec3(light_source_position - vertex_data.position));
+
+            // Ambient
+            vec3 ambient = vec3(ambient_strength);
+
+            // Diffuse
             vec3 diffuse = light_color * max(dot(light_direction, vertex_data.normal), 0.0f);
 
-            vec4 diffuse_color = vec4(diffuse, 1);
+            // Specular
+            vec3 reflected_light = normalize(reflect(-light_direction, vertex_data.normal));
+            vec3 observer_direction = normalize(camera_position - vertex_data.position);
+            float specular_factor = pow(max(dot(observer_direction, reflected_light), 0.0), 12);
+            vec3 specular = specular_factor * specular_color;
 
-            fragment_color = ambient_color * diffuse_color * texture(texture_sampler, vertex_data.texture_coordinates) * color;
+            fragment_color =
+                vec4((ambient + diffuse + specular), 1)  // Lighting
+                * texture(texture_sampler, vertex_data.texture_coordinates) // Texture
+                * color; // Vertex color
         }
     )";
 
@@ -100,9 +112,11 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
             };
         });
 
-    // Diffuse illumination
+    // Illumination
+    cubeShader->uploadUniformFloat3("camera_position", camera.position);
     cubeShader->uploadUniformFloat3("light_source_position", camera.position);
-    cubeShader->uploadUniformFloat3("light_color", {1.5, 1.5, 1.});
+    cubeShader->uploadUniformFloat3("light_color", {2., 2., 1.});\
+    cubeShader->uploadUniformFloat3("specular_color", {1., 1., 1.});
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
