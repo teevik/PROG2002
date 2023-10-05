@@ -37,22 +37,25 @@ int main() {
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
-
-    // Enable blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    
     // Clear color
-    glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
+    glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 
     // Event loop
     while (!glfwWindowShouldClose(window)) {
+        auto time = (float) glfwGetTime();
+        const float dayNightCycleSpeed = 0.3;
+        auto ambientStrength = (glm::sin(time * dayNightCycleSpeed) + 1.f) / 2.f;
+
+        auto ambientBackgroundColor = backgroundColor * ambientStrength;
+        glClearColor(ambientBackgroundColor.r, ambientBackgroundColor.g, ambientBackgroundColor.b, 1.0f);
+
         glfwPollEvents();
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        chessboard.draw();
-        cube.draw();
+        chessboard.draw(ambientStrength);
+        cube.draw(ambientStrength);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

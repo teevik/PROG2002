@@ -8,7 +8,8 @@
 namespace framework {
     enum class Filtering {
         Nearest,
-        Linear
+        Linear,
+        LinearMipmap
     };
 
     enum class Wrapping {
@@ -36,13 +37,13 @@ namespace framework {
 
     Texture loadTexture(
         const std::string &path,
-        Filtering filtering = Filtering::Linear,
+        Filtering filtering = Filtering::LinearMipmap,
         Wrapping wrapping = Wrapping::Repeat
     );
 
     Texture loadCubemap(
         const std::string &path,
-        Filtering filtering = Filtering::Linear,
+        Filtering filtering = Filtering::LinearMipmap,
         Wrapping wrapping = Wrapping::Repeat
     );
 }
