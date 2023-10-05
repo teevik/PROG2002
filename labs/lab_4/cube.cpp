@@ -73,12 +73,12 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
 
     // Chessboard mesh
     auto cubeVertices =
-        framework::unitCube.vertices | std::views::transform([](auto position) {
+        framework::unitCube::vertices | std::views::transform([](auto position) {
             return Cube::Vertex{
                 .position = position
             };
         });
-    auto cubeIndices = framework::unitCube.indices;
+    auto cubeIndices = framework::unitCube::indices;
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);

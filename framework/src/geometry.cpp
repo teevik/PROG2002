@@ -6,14 +6,14 @@ namespace framework {
     std::vector<VertexWithNormal> generateUnitCubeWithNormals() {
         std::vector<VertexWithNormal> mesh;
 
-        for (int i = 0; i < unitCube.indices.size(); i += 3) {
-            auto index1 = unitCube.indices[i];
-            auto index2 = unitCube.indices[i + 1];
-            auto index3 = unitCube.indices[i + 2];
+        for (int i = 0; i < unitCube::indices.size(); i += 3) {
+            auto index1 = unitCube::indices[i];
+            auto index2 = unitCube::indices[i + 1];
+            auto index3 = unitCube::indices[i + 2];
 
-            auto vertex1 = unitCube.vertices[index1];
-            auto vertex2 = unitCube.vertices[index2];
-            auto vertex3 = unitCube.vertices[index3];
+            auto vertex1 = unitCube::vertices[index1];
+            auto vertex2 = unitCube::vertices[index2];
+            auto vertex3 = unitCube::vertices[index3];
 
             auto u = vertex2 - vertex1;
             auto v = vertex3 - vertex1;

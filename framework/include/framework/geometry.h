@@ -9,12 +9,7 @@ namespace framework {
         glm::vec3 position;
         glm::vec3 normal;
     };
-
-    struct VerticesWithIndices {
-        std::vector<glm::vec3> vertices;
-        std::vector<uint32_t> indices;
-    };
-
+    
     static const std::vector<glm::vec2> unitTriangle = {
         {-0.5f, -0.5f},
         {0.5f,  -0.5f},
@@ -30,8 +25,8 @@ namespace framework {
         {-1.f, 1.f} // top left
     };
 
-    static const VerticesWithIndices unitCube = {
-        .vertices = {
+    namespace unitCube {
+        const std::vector<glm::vec3> vertices = {
             // front
             {-1.0, -1.0, 1.0},
             {1.0,  -1.0, 1.0},
@@ -42,9 +37,9 @@ namespace framework {
             {1.0,  -1.0, -1.0},
             {1.0,  1.0,  -1.0},
             {-1.0, 1.0,  -1.0}
-        },
+        };
 
-        .indices = {
+        const std::vector<uint32_t> indices = {
             // front
             0, 1, 2,
             2, 3, 0,
@@ -63,8 +58,8 @@ namespace framework {
             // top
             3, 2, 6,
             6, 7, 3
-        }
-    };
+        };
+    }
 
     std::vector<VertexWithNormal> generateUnitCubeWithNormals();
 

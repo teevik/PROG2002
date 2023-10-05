@@ -239,12 +239,12 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
 
     // Chessboard mesh
     auto cubeVertices =
-        framework::unitCube.vertices | std::views::transform([](auto position) {
+        framework::unitCube::vertices | std::views::transform([](auto position) {
             return Cube::Vertex{
                 .position = position
             };
         });
-    auto cubeIndices = framework::unitCube.indices;
+    auto cubeIndices = framework::unitCube::indices;
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
