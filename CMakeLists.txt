@@ -64,6 +64,7 @@ add_subdirectory(examples/example_2)
 add_subdirectory(examples/example_3)
 add_subdirectory(examples/example_4)
 add_subdirectory(examples/example_5)
+add_subdirectory(examples/example_6)
 
 # Add a subdirectory for labs.
 add_subdirectory(labs/lab_1)

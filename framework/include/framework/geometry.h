@@ -9,7 +9,7 @@ namespace framework {
         glm::vec3 position;
         glm::vec3 normal;
     };
-    
+
     static const std::vector<glm::vec2> unitTriangle = {
         {-0.5f, -0.5f},
         {0.5f,  -0.5f},
@@ -68,6 +68,14 @@ namespace framework {
      * @param resolution amount of triangles
      */
     std::vector<glm::vec2> generateCircleMesh(int resolution);
+
+    /// Mesh with indices
+    struct IndexMesh {
+        std::vector<glm::vec2> vertices;
+        std::vector<uint32_t> indices;
+    };
+
+    IndexMesh generateGridMesh(int resolution);
 }
 
 #endif //PROG2002_GEOMETRY_H

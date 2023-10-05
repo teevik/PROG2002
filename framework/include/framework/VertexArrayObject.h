@@ -44,10 +44,10 @@ namespace framework {
         const uint32_t vertexBufferId;
         const uint32_t indexBufferId;
 
-        void draw() const {
+        void draw(GLenum drawMode = GL_TRIANGLES) const {
             glUseProgram(shader->id);
             glBindVertexArray(vertexArrayId);
-            glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(drawMode, indices.size(), GL_UNSIGNED_INT, nullptr);
         }
 
         void free() const {
