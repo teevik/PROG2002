@@ -3,11 +3,9 @@
 #include <memory>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/vec2.hpp"
-#include "glm/detail/type_mat4x4.hpp"
 #include "framework/window.h"
 #include "framework/geometry.h"
+#include "framework/Camera.h"
 
 const int BOARD_SIZE = 8;
 
@@ -116,9 +114,9 @@ int main() {
 
     // Projection
     float aspectRatio = (float) width / (float) height;
-    float scale = 1.5f;
-    auto projection = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, -0.01f, 1.0f);
-    chessboardShader->uploadUniformMatrix4("projection", projection);
+    auto camera = framework::Camera::createOrthographic(1.5f, aspectRatio, {}, {}, {});
+
+    chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
 
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);

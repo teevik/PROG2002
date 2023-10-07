@@ -4,11 +4,9 @@
 #include <ranges>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/vec2.hpp"
-#include "glm/detail/type_mat4x4.hpp"
 #include "framework/window.h"
 #include "framework/geometry.h"
+#include "framework/Camera.h"
 
 struct Vertex {
     glm::vec2 position;
@@ -28,7 +26,6 @@ int main() {
             .color = {1.f, position.x, position.y, 1.f}
         };
     });
-
 
     // Circle
     glm::vec2 circlePosition = {1.f, -1.f};
@@ -98,11 +95,11 @@ int main() {
         {}
     );
 
-    // Projection
+    // Camera
     float aspectRatio = (float) width / (float) height;
-    auto projection = glm::ortho(-2.0f * aspectRatio, 2.0f * aspectRatio, -2.0f, 2.0f, -0.01f, 1.0f);
+    auto camera = framework::Camera::createOrthographic(2.f, aspectRatio, {}, {}, {});
 
-    shader->uploadUniformMatrix4("projection", projection);
+    shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);

@@ -2,16 +2,15 @@
 #include <memory>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/detail/type_mat4x4.hpp"
 #include "framework/window.h"
 #include "framework/geometry.h"
+#include "framework/Camera.h"
 
 int main() {
     int width = 800;
     int height = 600;
 
-    auto window = framework::createWindow(width, height, "Lab 1");
+    auto window = framework::createWindow(width, height, "Example 6");
 
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -64,11 +63,12 @@ int main() {
         grid.indices
     );
 
-    // Projection
+    // Camera
     float aspectRatio = (float) width / (float) height;
-    auto projection = glm::ortho(-0.8f * aspectRatio, 0.8f * aspectRatio, -0.8f, 0.8f, -0.01f, 1.0f);
 
-    shader->uploadUniformMatrix4("projection", projection);
+    auto camera = framework::Camera::createOrthographic(0.8f, aspectRatio, {}, {}, {});
+
+    shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
 
     // Clear color
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
