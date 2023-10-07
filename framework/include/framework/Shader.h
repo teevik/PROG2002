@@ -7,9 +7,11 @@
 namespace framework {
     class Shader {
     public:
-        const uint32_t id;
+        uint32_t id;
 
         Shader(const std::string &vertexShaderSource, const std::string &fragmentShaderSource);
+
+        Shader(Shader &&shader) noexcept;
 
         ~Shader();
 
