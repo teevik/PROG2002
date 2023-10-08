@@ -25,8 +25,6 @@ struct Cube {
     const framework::Texture texture;
 
     void draw(float ambientStrength) const;
-
-    void free();
 };
 
 Cube createCube(GLFWwindow *window, framework::Camera camera);

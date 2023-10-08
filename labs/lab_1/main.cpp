@@ -85,7 +85,7 @@ int main() {
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
     mesh.insert(mesh.end(), triangle.begin(), triangle.end());
 
-    auto object = framework::createVertexArrayObject<Vertex>(
+    auto object = framework::VertexArrayObject<Vertex>::create(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
@@ -123,8 +123,6 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
-    object.free();
 
     glfwTerminate();
 

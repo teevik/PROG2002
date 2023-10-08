@@ -37,7 +37,7 @@ int main() {
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);
-    
+
     // Clear color
     glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 
@@ -64,9 +64,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
-    chessboard.free();
-
+    
     glfwTerminate();
 
     return EXIT_SUCCESS;

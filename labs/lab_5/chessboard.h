@@ -29,10 +29,6 @@ struct Chessboard {
     void draw(float ambientStrength) const;
 
     void handleKeyInput(int key, int action);
-
-    void free() {
-        object.free();
-    }
 };
 
 Chessboard createChessboard(framework::Camera camera);

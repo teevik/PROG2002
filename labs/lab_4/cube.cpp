@@ -26,10 +26,6 @@ void Cube::draw() const {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void Cube::free() {
-    object.free();
-}
-
 Cube createCube(GLFWwindow *window, framework::Camera camera) {
     // language=glsl
     const std::string vertexShaderSource = R"(
@@ -84,7 +80,7 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
     cubeShader->uploadUniformMatrix4("view", camera.viewMatrix);
 
-    auto object = framework::createVertexArrayObject<Cube::Vertex>(
+    auto object = framework::VertexArrayObject<Cube::Vertex>::create(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
@@ -97,7 +93,7 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
 
     return {
         .window = window,
-        .object = object,
+        .object = std::move(object),
         .texture = std::move(texture)
     };
 }

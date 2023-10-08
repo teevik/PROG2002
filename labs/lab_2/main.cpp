@@ -102,7 +102,7 @@ int main() {
 
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::createVertexArrayObject<Vertex>(
+    auto object = framework::VertexArrayObject<Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
@@ -177,8 +177,6 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
-    object.free();
 
     glfwTerminate();
 

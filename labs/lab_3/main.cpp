@@ -53,10 +53,6 @@ struct Chessboard {
             }
         }
     }
-
-    void free() {
-        object.free();
-    }
 };
 
 Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
@@ -154,7 +150,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::createVertexArrayObject<Chessboard::Vertex>(
+    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
@@ -165,7 +161,7 @@ Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
     );
 
     return {
-        .object = object,
+        .object = std::move(object),
         .selectedTile = {0, 0}
     };
 }
@@ -200,10 +196,6 @@ struct Cube {
         object.shader->uploadUniformFloat4("color", {0.f, 0.f, 0.f, 1.f});
         object.draw();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    void free() {
-        object.free();
     }
 };
 
@@ -250,7 +242,7 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
     cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
     cubeShader->uploadUniformMatrix4("view", viewMatrix);
 
-    auto object = framework::createVertexArrayObject<Cube::Vertex>(
+    auto object = framework::VertexArrayObject<Cube::Vertex>::create(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
@@ -261,7 +253,7 @@ Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMa
 
     return {
         .window = window,
-        .object = object,
+        .object = std::move(object),
     };
 }
 
@@ -317,9 +309,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
-    chessboard.free();
-
+    
     glfwTerminate();
 
     return EXIT_SUCCESS;

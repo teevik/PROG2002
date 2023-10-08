@@ -54,7 +54,7 @@ int main() {
 
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::createVertexArrayObject<glm::vec2>(
+    auto object = framework::VertexArrayObject<glm::vec2>::create(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = 0},
@@ -88,9 +88,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
-    object.free();
-
+    
     glfwTerminate();
 
     return EXIT_SUCCESS;

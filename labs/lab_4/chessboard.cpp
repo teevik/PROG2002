@@ -145,7 +145,7 @@ Chessboard createChessboard(framework::Camera camera) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::createVertexArrayObject<Chessboard::Vertex>(
+    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
@@ -159,7 +159,7 @@ Chessboard createChessboard(framework::Camera camera) {
     auto texture = framework::loadTexture(TEXTURES_DIR + std::string("wood.png"));
 
     return {
-        .object = object,
+        .object = std::move(object),
         .texture = std::move(texture),
         .selectedTile = {0, 0}
     };
