@@ -6,97 +6,66 @@
 #include "GLFW/glfw3.h"
 #include "framework/Camera.h"
 
-void Chessboard::draw() const {
-    object.shader->uploadUniformInt2("selected_tile", selectedTile);
-    texture.bind();
-    object.draw();
-}
+// language=glsl
+const std::string vertexShaderSource = R"(
+    #version 450 core
 
-void Chessboard::handleKeyInput(int key, int action) {
-    if (action == GLFW_PRESS) {
-        switch (key) {
-            case GLFW_KEY_LEFT:
-                if (selectedTile.x > 0) selectedTile.x -= 1;
-                break;
+    layout(location = 0) in vec2 position;
+    layout(location = 1) in vec2 texture_coordinates;
+    layout(location = 2) in vec2 grid_position;
 
-            case GLFW_KEY_RIGHT:
-                if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
-                break;
+    out VertexData {
+        vec2 texture_coordinates;
+        vec2 grid_position;
+    } vertex_data;
 
-            case GLFW_KEY_UP:
-                if (selectedTile.y > 0) selectedTile.y -= 1;
-                break;
+    uniform mat4 projection;
+    uniform mat4 view;
+    uniform mat4 model;
 
-            case GLFW_KEY_DOWN:
-                if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
-                break;
-
-            default:
-                break;
-        }
+    void main() {
+        vertex_data.texture_coordinates = texture_coordinates;
+        vertex_data.grid_position = grid_position;
+        gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
     }
-}
+)";
 
-Chessboard createChessboard(framework::Camera camera) {
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
+// language=glsl
+const std::string fragmentShaderSource = R"(
+    #version 450 core
 
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 texture_coordinates;
-        layout(location = 2) in vec2 grid_position;
+    in VertexData {
+        vec2 texture_coordinates;
+        vec2 grid_position;
+    } vertex_data;
 
-        out VertexData {
-            vec2 texture_coordinates;
-            vec2 grid_position;
-        } vertex_data;
+    out vec4 color;
 
-        uniform mat4 projection;
-        uniform mat4 view;
-        uniform mat4 model;
+    layout(binding=0) uniform sampler2D texture_sampler;
+    uniform int board_size;
+    uniform ivec2 selected_tile;
 
-        void main() {
-            vertex_data.texture_coordinates = texture_coordinates;
-            vertex_data.grid_position = grid_position;
-            gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
-        }
-    )";
+    const vec4 white = vec4(1, 1, 1, 1);
+    const vec4 black = vec4(0, 0, 0, 1);
+    const vec4 green = vec4(0, 1, 0, 1);
 
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
+    void main() {
+        ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
 
-        in VertexData {
-            vec2 texture_coordinates;
-            vec2 grid_position;
-        } vertex_data;
+        bool is_black = tile_index.x % 2 == tile_index.y % 2;
+        bool is_selected = tile_index == selected_tile;
 
-        out vec4 color;
+        vec4 chessboard_color = is_selected ? green : (
+            is_black ? black : white
+        );
 
-        layout(binding=0) uniform sampler2D texture_sampler;
-        uniform int board_size;
-        uniform ivec2 selected_tile;
+        vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
 
-        const vec4 white = vec4(1, 1, 1, 1);
-        const vec4 black = vec4(0, 0, 0, 1);
-        const vec4 green = vec4(0, 1, 0, 1);
+        color = mix(chessboard_color, texture_color, 0.7);
+    }
+)";
 
-        void main() {
-            ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
-
-            bool is_black = tile_index.x % 2 == tile_index.y % 2;
-            bool is_selected = tile_index == selected_tile;
-
-            vec4 chessboard_color = is_selected ? green : (
-                is_black ? black : white
-            );
-
-            vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
-
-            color = mix(chessboard_color, texture_color, 0.7);
-        }
-    )";
-
+Chessboard Chessboard::create(framework::Camera camera) {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     // Chessboard mesh
@@ -145,7 +114,7 @@ Chessboard createChessboard(framework::Camera camera) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::createVertexArrayObject<Chessboard::Vertex>(
+    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
@@ -159,8 +128,39 @@ Chessboard createChessboard(framework::Camera camera) {
     auto texture = framework::loadTexture(TEXTURES_DIR + std::string("wood.png"));
 
     return {
-        .object = object,
+        .object = std::move(object),
         .texture = std::move(texture),
         .selectedTile = {0, 0}
     };
+}
+
+void Chessboard::draw() const {
+    object.shader->uploadUniformInt2("selected_tile", selectedTile);
+    texture.bind();
+    object.draw();
+}
+
+void Chessboard::handleKeyInput(int key, int action) {
+    if (action == GLFW_PRESS) {
+        switch (key) {
+            case GLFW_KEY_LEFT:
+                if (selectedTile.x > 0) selectedTile.x -= 1;
+                break;
+
+            case GLFW_KEY_RIGHT:
+                if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
+                break;
+
+            case GLFW_KEY_UP:
+                if (selectedTile.y > 0) selectedTile.y -= 1;
+                break;
+
+            case GLFW_KEY_DOWN:
+                if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
+                break;
+
+            default:
+                break;
+        }
+    }
 }

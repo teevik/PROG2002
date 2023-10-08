@@ -26,13 +26,11 @@ struct Chessboard {
 
     glm::ivec2 selectedTile;
 
+    static Chessboard create(framework::Camera camera);
+
     void draw(float ambientStrength) const;
 
     void handleKeyInput(int key, int action);
-
-    void free() {
-        object.free();
-    }
 };
 
 Chessboard createChessboard(framework::Camera camera);

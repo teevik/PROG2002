@@ -8,13 +8,13 @@ static void glfwErrorCallback(int32_t code, const char *description) {
 }
 
 static void GLAPIENTRY debugMessageCallback(
-    GLenum source,
+    [[maybe_unused]] GLenum source,
     GLenum type,
-    GLuint id,
+    [[maybe_unused]] GLuint id,
     GLenum severity,
-    GLsizei length,
+    [[maybe_unused]] GLsizei length,
     const GLchar *message,
-    const void *userParam
+    [[maybe_unused]] const void *userParam
 ) {
     std::cerr << "OpenGL Callback: " << (type == GL_DEBUG_TYPE_ERROR ? "** ERROR **" : "")
               << " Type: 0x" << type

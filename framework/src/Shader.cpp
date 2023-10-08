@@ -65,8 +65,12 @@ namespace framework {
         id(createShaderPipeline(vertexShaderSource, fragmentShaderSource)) {
     }
 
+    Shader::Shader(Shader &&shader) noexcept: id(shader.id) {
+        shader.id = 0;
+    }
+
     Shader::~Shader() {
-        glDeleteProgram(id);
+        if (id) glDeleteProgram(id);
     }
 
     void Shader::uploadUniformInt1(const std::string &name, int value) const {
