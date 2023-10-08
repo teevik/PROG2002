@@ -46,8 +46,8 @@ namespace framework {
 
         VertexArrayObject(
             const std::vector<VertexType> vertices,
-            const std::vector<IndexType> indices,
-            const std::shared_ptr<Shader> shader,
+            const std::vector<IndexType> &indices,
+            const std::shared_ptr<Shader> &shader,
             uint32_t vertexArrayId,
             uint32_t vertexBufferId,
             uint32_t indexBufferId
@@ -137,7 +137,7 @@ namespace framework {
                 glVertexArrayAttribFormat(
                     vertexArrayId,
                     attributeIndex,
-                    vertexAttribute.size,
+                    (int32_t) vertexAttribute.size,
                     vertexAttribute.type,
                     vertexAttribute.normalize,
                     vertexAttribute.offset

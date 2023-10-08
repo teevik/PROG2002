@@ -2,8 +2,6 @@
 
 #include "glad/glad.h"
 #include "glm/ext/matrix_clip_space.hpp"
-#include "glm/detail/type_mat4x4.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include "stb_image.h"
 #include "framework/window.h"
 #include "chessboard.h"
@@ -64,7 +62,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-    
+
     glfwTerminate();
 
     return EXIT_SUCCESS;
