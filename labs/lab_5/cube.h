@@ -24,9 +24,9 @@ struct Cube {
     const framework::VertexArrayObject<Vertex> object;
     const framework::Texture texture;
 
+    static Cube create(GLFWwindow *window, framework::Camera camera);
+
     void draw(float ambientStrength) const;
 };
-
-Cube createCube(GLFWwindow *window, framework::Camera camera);
 
 #endif //PROG2002_CUBE_H
