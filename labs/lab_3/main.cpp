@@ -24,6 +24,117 @@ struct Chessboard {
     const framework::VertexArrayObject<Vertex> object;
     glm::ivec2 selectedTile;
 
+    static Chessboard create(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
+        // language=glsl
+        const std::string vertexShaderSource = R"(
+            #version 450 core
+
+            layout(location = 0) in vec2 position;
+            layout(location = 1) in vec2 grid_position;
+
+            out VertexData {
+                vec2 grid_position;
+            } vertex_data;
+
+            uniform mat4 projection;
+            uniform mat4 view;
+            uniform mat4 model;
+
+            void main() {
+                vertex_data.grid_position = grid_position;
+                gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
+            }
+        )";
+
+        // language=glsl
+        const std::string fragmentShaderSource = R"(
+            #version 450 core
+
+            in VertexData {
+                vec2 grid_position;
+            } vertex_data;
+
+            out vec4 color;
+
+            uniform int board_size;
+            uniform ivec2 selected_tile;
+
+            const vec4 white = vec4(1, 1, 1, 1);
+            const vec4 black = vec4(0, 0, 0, 1);
+            const vec4 green = vec4(0, 1, 0, 1);
+
+            void main() {
+                ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
+
+                bool is_black = tile_index.x % 2 == tile_index.y % 2;
+                bool is_selected = tile_index == selected_tile;
+
+                color = is_selected ? green : (
+                    is_black ? black : white
+                );
+            }
+        )";
+
+        auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+
+        // Chessboard mesh
+        std::vector<Chessboard::Vertex> chessboardVertices = {
+            { // right top
+                .position = {1.f, 1.f},
+                .gridPosition = {1.f, 0.f}
+            },
+            { // right bottom
+                .position = {1.f, -1.f},
+                .gridPosition = {1.f, 1.f}
+            },
+            { // left top
+                .position = {-1.f, 1.f},
+                .gridPosition = {0.f, 0.f}
+            },
+            { // left bottom
+                .position = {-1.f, -1.f},
+                .gridPosition = {0.f, 1.f}
+            },
+        };
+
+        std::vector<uint32_t> chessboardIndices = {
+            0, // right top
+            1, // right bottom
+            2, // left top
+            1, // right bottom
+            3, // left bottom
+            2 // left top
+        };
+
+        auto chessboardModelMatrix = glm::mat4(1.0f);
+        chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
+        chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
+        chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
+
+        // Transformation
+        chessboardShader->uploadUniformMatrix4("projection", projectionMatrix);
+        chessboardShader->uploadUniformMatrix4("view", viewMatrix);
+        chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
+
+        // Board size
+        chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
+
+        auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
+            chessboardShader,
+            {
+                {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
+                {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
+            },
+            chessboardVertices,
+            chessboardIndices
+        );
+
+        return {
+            .object = std::move(object),
+            .selectedTile = {0, 0}
+        };
+    }
+
     void draw() const {
         object.shader->uploadUniformInt2("selected_tile", selectedTile);
         object.draw();
@@ -55,117 +166,6 @@ struct Chessboard {
     }
 };
 
-Chessboard createChessboard(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
-
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 grid_position;
-
-        out VertexData {
-            vec2 grid_position;
-        } vertex_data;
-
-        uniform mat4 projection;
-        uniform mat4 view;
-        uniform mat4 model;
-
-        void main() {
-            vertex_data.grid_position = grid_position;
-            gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
-        }
-    )";
-
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
-
-        in VertexData {
-            vec2 grid_position;
-        } vertex_data;
-
-        out vec4 color;
-
-        uniform int board_size;
-        uniform ivec2 selected_tile;
-
-        const vec4 white = vec4(1, 1, 1, 1);
-        const vec4 black = vec4(0, 0, 0, 1);
-        const vec4 green = vec4(0, 1, 0, 1);
-
-        void main() {
-            ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
-
-            bool is_black = tile_index.x % 2 == tile_index.y % 2;
-            bool is_selected = tile_index == selected_tile;
-
-            color = is_selected ? green : (
-                is_black ? black : white
-            );
-        }
-    )";
-
-    auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
-
-    // Chessboard mesh
-    std::vector<Chessboard::Vertex> chessboardVertices = {
-        { // right top
-            .position = {1.f, 1.f},
-            .gridPosition = {1.f, 0.f}
-        },
-        { // right bottom
-            .position = {1.f, -1.f},
-            .gridPosition = {1.f, 1.f}
-        },
-        { // left top
-            .position = {-1.f, 1.f},
-            .gridPosition = {0.f, 0.f}
-        },
-        { // left bottom
-            .position = {-1.f, -1.f},
-            .gridPosition = {0.f, 1.f}
-        },
-    };
-
-    std::vector<uint32_t> chessboardIndices = {
-        0, // right top
-        1, // right bottom
-        2, // left top
-        1, // right bottom
-        3, // left bottom
-        2 // left top
-    };
-
-    auto chessboardModelMatrix = glm::mat4(1.0f);
-    chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
-    chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
-    chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
-
-    // Transformation
-    chessboardShader->uploadUniformMatrix4("projection", projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", viewMatrix);
-    chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
-
-    // Board size
-    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
-
-    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
-        chessboardShader,
-        {
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
-        },
-        chessboardVertices,
-        chessboardIndices
-    );
-
-    return {
-        .object = std::move(object),
-        .selectedTile = {0, 0}
-    };
-}
-
 struct Cube {
     struct Vertex {
         /// Vertex position
@@ -174,6 +174,64 @@ struct Cube {
 
     GLFWwindow *window;
     const framework::VertexArrayObject<Vertex> object;
+
+    static Cube create(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
+        // language=glsl
+        const std::string vertexShaderSource = R"(
+            #version 450 core
+
+            layout(location = 0) in vec3 position;
+
+            uniform mat4 projection;
+            uniform mat4 view;
+            uniform mat4 model;
+
+            void main() {
+                gl_Position = projection * view * model * vec4(position.xyz, 1.0);
+            }
+        )";
+
+        // language=glsl
+        const std::string fragmentShaderSource = R"(
+            #version 450 core
+            out vec4 fragment_color;
+
+            uniform vec4 color;
+
+            void main() {
+                fragment_color = color;
+            }
+        )";
+
+        auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+
+        // Chessboard mesh
+        auto cubeVertices =
+            framework::unitCube::vertices | std::views::transform([](auto position) {
+                return Cube::Vertex{
+                    .position = position
+                };
+            });
+        auto cubeIndices = framework::unitCube::indices;
+
+        // Transformation, model is set in draw()
+        cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
+        cubeShader->uploadUniformMatrix4("view", viewMatrix);
+
+        auto object = framework::VertexArrayObject<Cube::Vertex>::create(
+            cubeShader,
+            {
+                {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
+            },
+            {cubeVertices.begin(), cubeVertices.end()},
+            cubeIndices
+        );
+
+        return {
+            .window = window,
+            .object = std::move(object),
+        };
+    }
 
     void draw() const {
         // Set model matrix
@@ -199,64 +257,6 @@ struct Cube {
     }
 };
 
-Cube createCube(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
-
-        layout(location = 0) in vec3 position;
-
-        uniform mat4 projection;
-        uniform mat4 view;
-        uniform mat4 model;
-
-        void main() {
-            gl_Position = projection * view * model * vec4(position.xyz, 1.0);
-        }
-    )";
-
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
-        out vec4 fragment_color;
-
-        uniform vec4 color;
-
-        void main() {
-            fragment_color = color;
-        }
-    )";
-
-    auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
-
-    // Chessboard mesh
-    auto cubeVertices =
-        framework::unitCube::vertices | std::views::transform([](auto position) {
-            return Cube::Vertex{
-                .position = position
-            };
-        });
-    auto cubeIndices = framework::unitCube::indices;
-
-    // Transformation, model is set in draw()
-    cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
-    cubeShader->uploadUniformMatrix4("view", viewMatrix);
-
-    auto object = framework::VertexArrayObject<Cube::Vertex>::create(
-        cubeShader,
-        {
-            {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
-        },
-        {cubeVertices.begin(), cubeVertices.end()},
-        cubeIndices
-    );
-
-    return {
-        .window = window,
-        .object = std::move(object),
-    };
-}
-
 int main() {
     int width = 800;
     int height = 600;
@@ -278,9 +278,8 @@ int main() {
         up
     );
 
-    // TODO: Static to access in callback, probably bad hack?
-    static auto chessboard = createChessboard(projectionMatrix, viewMatrix);
-    auto cube = createCube(window, projectionMatrix, viewMatrix);
+    static auto chessboard = Chessboard::create(projectionMatrix, viewMatrix);
+    auto cube = Cube::create(window, projectionMatrix, viewMatrix);
 
     // Handle input
     auto keyCallback = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -309,7 +308,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-    
+
     glfwTerminate();
 
     return EXIT_SUCCESS;
