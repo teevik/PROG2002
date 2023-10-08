@@ -13,6 +13,46 @@ struct Vertex {
     glm::vec4 color;
 };
 
+// language=glsl
+const std::string vertexShaderSource = R"(
+    #version 450 core
+
+    layout(location = 0) in vec2 position;
+    layout(location = 1) in vec4 color;
+
+    out vec4 vertex_color;
+
+    uniform mat4 projection;
+
+    void main() {
+        gl_Position = projection * vec4(position.xy, 0.0, 1.0);
+        vertex_color = color;
+    }
+)";
+
+// language=glsl
+const std::string fragmentShaderSource = R"(
+    #version 450 core
+
+    float rand(float n){return fract(sin(n) * 43758.5453123);}
+
+    float noise(float p){
+        float fl = floor(p);
+        float fc = fract(p);
+        return mix(rand(fl), rand(fl + 1.0), fc);
+    }
+
+    in vec4 vertex_color;
+
+    out vec4 color;
+
+    uniform float time;
+
+    void main() {
+        color = vertex_color + vec4(cos(time), sin(time), cos(time), 1);
+    }
+)";
+
 int main() {
     int width = 800;
     int height = 600;
@@ -39,48 +79,9 @@ int main() {
             };
         });
 
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
-
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec4 color;
-
-        out vec4 vertex_color;
-
-        uniform mat4 projection;
-
-        void main() {
-            gl_Position = projection * vec4(position.xy, 0.0, 1.0);
-            vertex_color = color;
-        }
-    )";
-
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
-
-        float rand(float n){return fract(sin(n) * 43758.5453123);}
-
-        float noise(float p){
-            float fl = floor(p);
-            float fc = fract(p);
-            return mix(rand(fl), rand(fl + 1.0), fc);
-        }
-
-        in vec4 vertex_color;
-
-        out vec4 color;
-
-        uniform float time;
-
-        void main() {
-            color = vertex_color + vec4(cos(time), sin(time), cos(time), 1);
-        }
-    )";
-
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
+    // Combine mesh
     std::vector<Vertex> mesh;
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
     mesh.insert(mesh.end(), triangle.begin(), triangle.end());
