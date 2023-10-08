@@ -1,5 +1,3 @@
-#define GLFW_INCLUDE_NONE
-
 #include "glad/glad.h"
 #include "stb_image.h"
 #include "framework/window.h"
@@ -21,16 +19,14 @@ int main() {
 
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
-    // TODO: Static to access in callback, probably bad hack?
-    static auto chessboard = createChessboard(camera);
-    auto cube = createCube(window, camera);
+    static auto chessboard = Chessboard::create(camera);
+    auto cube = Cube::create(window, camera);
 
     // Handle input
-    auto keyCallback = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+    auto handleKeyInput = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
         chessboard.handleKeyInput(key, action);
     };
-
-    glfwSetKeyCallback(window, keyCallback);
+    glfwSetKeyCallback(window, handleKeyInput);
 
     // Enable depth
     glEnable(GL_DEPTH_TEST);

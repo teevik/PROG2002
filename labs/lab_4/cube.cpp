@@ -1,70 +1,45 @@
 #include "cube.h"
 #include "framework/Camera.h"
 
-void Cube::draw() const {
-    texture.bind();
+// language=glsl
+const std::string vertexShaderSource = R"(
+    #version 450 core
 
-    // Set model matrix
-    glm::dvec2 cursorPosition;
-    glfwGetCursorPos(window, &cursorPosition.x, &cursorPosition.y);
+    layout(location = 0) in vec3 position;
 
-    auto modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.2f, 0.f));
-    modelMatrix *= glm::eulerAngleXY((float) cursorPosition.y / 500.f, (float) cursorPosition.x / 500.f);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+    out VertexData {
+        vec3 position;
+    } vertex_data;
 
-    object.shader->uploadUniformMatrix4("model", modelMatrix);
+    uniform mat4 projection;
+    uniform mat4 view;
+    uniform mat4 model;
 
-    // Draw fill
-    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 0.5f});
-    object.draw();
+    void main() {
+        vertex_data.position = position;
+        gl_Position = projection * view * model * vec4(position.xyz, 1.0);
+    }
+)";
 
-    // Draw wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    object.shader->uploadUniformFloat4("color", {0.f, 0.f, 0.f, 1.f});
-    object.draw();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
+// language=glsl
+const std::string fragmentShaderSource = R"(
+    #version 450 core
 
-Cube createCube(GLFWwindow *window, framework::Camera camera) {
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
+    in VertexData {
+        vec3 position;
+    } vertex_data;
 
-        layout(location = 0) in vec3 position;
+    out vec4 fragment_color;
 
-        out VertexData {
-            vec3 position;
-        } vertex_data;
+    layout(binding=0) uniform samplerCube texture_sampler;
+    uniform vec4 color;
 
-        uniform mat4 projection;
-        uniform mat4 view;
-        uniform mat4 model;
+    void main() {
+        fragment_color = texture(texture_sampler, vertex_data.position) * color;
+    }
+)";
 
-        void main() {
-            vertex_data.position = position;
-            gl_Position = projection * view * model * vec4(position.xyz, 1.0);
-        }
-    )";
-
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
-
-        in VertexData {
-            vec3 position;
-        } vertex_data;
-
-        out vec4 fragment_color;
-
-        layout(binding=0) uniform samplerCube texture_sampler;
-        uniform vec4 color;
-
-        void main() {
-            fragment_color = texture(texture_sampler, vertex_data.position) * color;
-        }
-    )";
-
+Cube Cube::create(GLFWwindow *window, framework::Camera camera) {
     auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     // Chessboard mesh
@@ -96,4 +71,29 @@ Cube createCube(GLFWwindow *window, framework::Camera camera) {
         .object = std::move(object),
         .texture = std::move(texture)
     };
+}
+
+void Cube::draw() const {
+    texture.bind();
+
+    // Set model matrix
+    glm::dvec2 cursorPosition;
+    glfwGetCursorPos(window, &cursorPosition.x, &cursorPosition.y);
+
+    auto modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.2f, 0.f));
+    modelMatrix *= glm::eulerAngleXY((float) cursorPosition.y / 500.f, (float) cursorPosition.x / 500.f);
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+
+    object.shader->uploadUniformMatrix4("model", modelMatrix);
+
+    // Draw fill
+    object.shader->uploadUniformFloat4("color", {1.f, 1.f, 1.f, 0.5f});
+    object.draw();
+
+    // Draw wireframe
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    object.shader->uploadUniformFloat4("color", {0.f, 0.f, 0.f, 1.f});
+    object.draw();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
