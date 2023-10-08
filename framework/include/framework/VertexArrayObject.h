@@ -103,13 +103,18 @@ namespace framework {
             glCreateBuffers(1, &vertexBufferId);
             glCreateBuffers(1, &indexBufferId);
 
-            // TODO: Should only generate indices if indices arent provided, some sort of lazy way?
-            auto indexGenerator = std::views::iota(0u, (IndexType) vertices.size());
-            std::vector<IndexType> generatedIndices = {indexGenerator.begin(), indexGenerator.end()};
+            // Generate indices if not given
+            std::vector<IndexType> indicesOrGenerated;
+            if (indices.has_value()) {
+                indicesOrGenerated = std::move(indices.value());
+            } else {
+                auto indexGenerator = std::views::iota(0u, (IndexType) vertices.size());
+                indicesOrGenerated = {indexGenerator.begin(), indexGenerator.end()};
+            }
 
             VertexArrayObject<VertexType> builtObject(
                 std::move(vertices),
-                std::move(indices.value_or(generatedIndices)),
+                std::move(indicesOrGenerated),
                 shader,
                 vertexArrayId,
                 vertexBufferId,
