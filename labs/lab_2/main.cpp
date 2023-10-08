@@ -17,6 +17,54 @@ struct Vertex {
     glm::vec2 gridPosition;
 };
 
+// language=glsl
+const std::string vertexShaderSource = R"(
+    #version 450 core
+
+    layout(location = 0) in vec2 position;
+    layout(location = 1) in vec2 grid_position;
+
+    out VertexData {
+        vec2 grid_position;
+    } vertex_data;
+
+    uniform mat4 projection;
+
+    void main() {
+        vertex_data.grid_position = grid_position;
+        gl_Position = projection * vec4(position.xy, 0.0, 1.0);
+    }
+)";
+
+// language=glsl
+const std::string fragmentShaderSource = R"(
+    #version 450 core
+
+    in VertexData {
+        vec2 grid_position;
+    } vertex_data;
+
+    out vec4 color;
+
+    uniform int board_size;
+    uniform ivec2 selected_tile;
+
+    const vec4 white = vec4(1, 1, 1, 1);
+    const vec4 black = vec4(0, 0, 0, 1);
+    const vec4 green = vec4(0, 1, 0, 1);
+
+    void main() {
+        ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
+
+        bool is_black = tile_index.x % 2 == tile_index.y % 2;
+        bool is_selected = tile_index == selected_tile;
+
+        color = is_selected ? green : (
+            is_black ? black : white
+        );
+    }
+)";
+
 int main() {
     int width = 800;
     int height = 600;
@@ -52,54 +100,6 @@ int main() {
         2 // left top
     };
 
-    // language=glsl
-    const std::string vertexShaderSource = R"(
-        #version 450 core
-
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 grid_position;
-
-        out VertexData {
-            vec2 grid_position;
-        } vertex_data;
-
-        uniform mat4 projection;
-
-        void main() {
-            vertex_data.grid_position = grid_position;
-            gl_Position = projection * vec4(position.xy, 0.0, 1.0);
-        }
-    )";
-
-    // language=glsl
-    const std::string fragmentShaderSource = R"(
-        #version 450 core
-
-        in VertexData {
-            vec2 grid_position;
-        } vertex_data;
-
-        out vec4 color;
-
-        uniform int board_size;
-        uniform ivec2 selected_tile;
-
-        const vec4 white = vec4(1, 1, 1, 1);
-        const vec4 black = vec4(0, 0, 0, 1);
-        const vec4 green = vec4(0, 1, 0, 1);
-
-        void main() {
-            ivec2 tile_index = ivec2(floor(vertex_data.grid_position * board_size));
-
-            bool is_black = tile_index.x % 2 == tile_index.y % 2;
-            bool is_selected = tile_index == selected_tile;
-
-            color = is_selected ? green : (
-                is_black ? black : white
-            );
-        }
-    )";
-
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     auto object = framework::VertexArrayObject<Vertex>::create(
@@ -125,30 +125,25 @@ int main() {
     glClearColor(0.917f, 0.905f, 0.850f, 1.0f);
 
     // State of selected tile
-    glm::ivec2 selectedTile = {0, 0};
+    static glm::ivec2 selectedTile = {0, 0};
 
-    // Store selected tile in glfw user pointer to access in callback, will probably store the whole game state in
-    // the future?
-    glfwSetWindowUserPointer(window, &selectedTile);
     auto keyCallback = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-        auto selectedTile = static_cast<glm::ivec2 *>(glfwGetWindowUserPointer(window));
-
         if (action == GLFW_PRESS) {
             switch (key) {
                 case GLFW_KEY_LEFT:
-                    if (selectedTile->x > 0) selectedTile->x -= 1;
+                    if (selectedTile.x > 0) selectedTile.x -= 1;
                     break;
 
                 case GLFW_KEY_RIGHT:
-                    if (selectedTile->x < BOARD_SIZE - 1) selectedTile->x += 1;
+                    if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
                     break;
 
                 case GLFW_KEY_UP:
-                    if (selectedTile->y > 0) selectedTile->y -= 1;
+                    if (selectedTile.y > 0) selectedTile.y -= 1;
                     break;
 
                 case GLFW_KEY_DOWN:
-                    if (selectedTile->y < BOARD_SIZE - 1) selectedTile->y += 1;
+                    if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
                     break;
 
                 default:
