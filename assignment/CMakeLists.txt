@@ -18,8 +18,10 @@ find_package(OpenGL REQUIRED)
 # file 'main.cpp'. This means that CMake will generate build rules to compile
 # 'main.cpp' and link it into an executable program named 'example_1'.
 add_executable(${PROJECT_NAME} main.cpp
-        chessboard.h
-        chessboard.cpp
+        ChessBoard.h
+        ChessBoard.cpp
+        ChessPieces.cpp
+        ChessPieces.h
 )
 
 # Specify libraries to link with the 'example_1' target.
@@ -38,4 +40,4 @@ add_custom_command(
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-        RESOURCES_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/")
+        RESOURCES_DIR="./resources/")

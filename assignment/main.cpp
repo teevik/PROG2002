@@ -1,8 +1,10 @@
 #include "glad/glad.h"
 #include "stb_image.h"
 #include "framework/window.h"
-#include "ChessBoard.h"
 #include "framework/Camera.h"
+
+#include "ChessBoard.h"
+#include "ChessPieces.h"
 
 int main() {
     int width = 800;
@@ -19,7 +21,8 @@ int main() {
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
     // Objects
-    auto chessboard = ChessBoard::create(camera);
+    auto chessboard = ChessBoard::create();
+    auto chessPieces = ChessPieces::create();
 
     // State
     static glm::ivec2 selectedTile;
@@ -55,10 +58,7 @@ int main() {
         }
     };
     glfwSetKeyCallback(window, handleKeyInput);
-
-    // Enable depth
-    glEnable(GL_DEPTH_TEST);
-
+    
     // Clear color
     glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 
@@ -71,8 +71,9 @@ int main() {
         glfwPollEvents();
 
         // Draw
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        chessboard.draw(selectedTile, useTextures, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        chessboard.draw(selectedTile, useTextures, camera);
+        chessPieces.draw(useTextures, camera);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

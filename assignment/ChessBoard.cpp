@@ -45,7 +45,6 @@ const std::string fragmentShaderSource = R"(
     uniform bool use_textures;
     uniform int board_size;
     uniform ivec2 selected_tile;
-    uniform float ambient_strength;
 
     const vec4 white = vec4(1, 1, 1, 1);
     const vec4 black = vec4(0, 0, 0, 1);
@@ -63,7 +62,7 @@ const std::string fragmentShaderSource = R"(
 
         vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
 
-        color = vec4(vec3(ambient_strength), 1) * mix(chessboard_color, texture_color, use_textures ? 0.7 : 0);
+        color = mix(chessboard_color, texture_color, use_textures ? 0.7 : 0);
     }
 )";
 
@@ -134,9 +133,8 @@ ChessBoard ChessBoard::create() {
 }
 
 void
-ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, float ambientStrength, framework::Camera camera) const {
+ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, framework::Camera &camera) const {
     object.shader->uploadUniformBool1("use_textures", useTextures);
-    object.shader->uploadUniformFloat1("ambient_strength", ambientStrength);
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
 
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);

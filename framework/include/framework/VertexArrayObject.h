@@ -76,10 +76,10 @@ namespace framework {
             if (vertexArrayId) glDeleteVertexArrays(1, &vertexArrayId);
         }
 
-        void draw(GLenum drawMode = GL_TRIANGLES) const {
+        void draw(uint32_t batches = 1, GLenum drawMode = GL_TRIANGLES) const {
             glUseProgram(shader->id);
             glBindVertexArray(vertexArrayId);
-            glDrawElements(drawMode, indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(drawMode, indices.size() * batches, GL_UNSIGNED_INT, nullptr);
         }
 
         /**
