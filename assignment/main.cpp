@@ -58,7 +58,10 @@ int main() {
         }
     };
     glfwSetKeyCallback(window, handleKeyInput);
-    
+
+    // Enable depth
+    glEnable(GL_DEPTH_TEST);
+
     // Clear color
     glm::vec3 backgroundColor = {0.917f, 0.905f, 0.850f};
 
@@ -71,7 +74,7 @@ int main() {
         glfwPollEvents();
 
         // Draw
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         chessboard.draw(selectedTile, useTextures, camera);
         chessPieces.draw(useTextures, camera);
 
