@@ -9,7 +9,7 @@
 
 const int BOARD_SIZE = 8;
 
-struct Chessboard {
+struct ChessBoard {
     struct Vertex {
         /// Vertex position
         glm::vec2 position;
@@ -24,9 +24,9 @@ struct Chessboard {
     const framework::VertexArrayObject<Vertex> object;
     const framework::Texture texture;
 
-    static Chessboard create(framework::Camera camera);
+    static ChessBoard create();
 
-    void draw(glm::ivec2 selectedTile, float ambientStrength) const;
+    void draw(glm::ivec2 selectedTile, bool useTextures, float ambientStrength, framework::Camera camera) const;
 };
 
 #endif //PROG2002_CHESSBOARD_H

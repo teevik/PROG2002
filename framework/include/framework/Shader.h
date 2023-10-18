@@ -19,6 +19,8 @@ namespace framework {
 
         Shader &operator=(const Shader &) = delete;
 
+        void uploadUniformBool1(const std::string &name, bool value) const;
+
         void uploadUniformInt1(const std::string &name, int value) const;
 
         void uploadUniformInt2(const std::string &name, glm::ivec2 value) const;

@@ -1,7 +1,7 @@
 #include "glad/glad.h"
 #include "stb_image.h"
 #include "framework/window.h"
-#include "chessboard.h"
+#include "ChessBoard.h"
 #include "framework/Camera.h"
 
 int main() {
@@ -19,15 +19,20 @@ int main() {
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
     // Objects
-    auto chessboard = Chessboard::create(camera);
+    auto chessboard = ChessBoard::create(camera);
 
     // State
     static glm::ivec2 selectedTile;
+    static bool useTextures = true;
 
     // Handle input
     auto handleKeyInput = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
         if (action == GLFW_PRESS) {
             switch (key) {
+                case GLFW_KEY_T:
+                    useTextures = !useTextures;
+                    break;
+
                 case GLFW_KEY_LEFT:
                     if (selectedTile.x > 0) selectedTile.x -= 1;
                     break;
@@ -67,7 +72,7 @@ int main() {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        chessboard.draw(selectedTile, 1.0);
+        chessboard.draw(selectedTile, useTextures, 1.0);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

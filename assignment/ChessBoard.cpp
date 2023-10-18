@@ -1,4 +1,4 @@
-#include "chessboard.h"
+#include "ChessBoard.h"
 
 #include "framework/VertexArrayObject.h"
 #include "framework/Texture.h"
@@ -42,6 +42,7 @@ const std::string fragmentShaderSource = R"(
     out vec4 color;
 
     layout(binding=0) uniform sampler2D texture_sampler;
+    uniform bool use_textures;
     uniform int board_size;
     uniform ivec2 selected_tile;
     uniform float ambient_strength;
@@ -62,15 +63,15 @@ const std::string fragmentShaderSource = R"(
 
         vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
 
-        color = vec4(vec3(ambient_strength), 1) * mix(chessboard_color, texture_color, 0.7);
+        color = vec4(vec3(ambient_strength), 1) * mix(chessboard_color, texture_color, use_textures ? 0.7 : 0);
     }
 )";
 
-Chessboard Chessboard::create(framework::Camera camera) {
+ChessBoard ChessBoard::create() {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     // Chessboard mesh
-    std::vector<Chessboard::Vertex> chessboardVertices = {
+    std::vector<ChessBoard::Vertex> chessboardVertices = {
         { // right top
             .position = {1.f, 1.f},
             .textureCoordinates = {1.f, 0.f},
@@ -102,25 +103,23 @@ Chessboard Chessboard::create(framework::Camera camera) {
         2 // left top
     };
 
+    // Model matrix
     auto chessboardModelMatrix = glm::mat4(1.0f);
     chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
     chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
     chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
 
-    // Transformation
-    chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix);
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
+    auto object = framework::VertexArrayObject<ChessBoard::Vertex>::create(
         chessboardShader,
         {
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, textureCoordinates)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, position)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, textureCoordinates)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, gridPosition)},
         },
         chessboardVertices,
         chessboardIndices
@@ -134,9 +133,14 @@ Chessboard Chessboard::create(framework::Camera camera) {
     };
 }
 
-void Chessboard::draw(glm::ivec2 selectedTile, float ambientStrength) const {
+void
+ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, float ambientStrength, framework::Camera camera) const {
+    object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformFloat1("ambient_strength", ambientStrength);
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
+
+    object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    object.shader->uploadUniformMatrix4("view", camera.viewMatrix);
 
     texture.bind();
     object.draw();
