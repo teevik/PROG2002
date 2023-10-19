@@ -1,0 +1,8 @@
+#ifndef PROG2002_CONSTANTS_H
+#define PROG2002_CONSTANTS_H
+
+const int BOARD_SIZE = 8;
+const int TEAM_ROWS = 2;
+const int BOARD_PIECES = BOARD_SIZE * TEAM_ROWS * 2;
+
+#endif //PROG2002_CONSTANTS_H

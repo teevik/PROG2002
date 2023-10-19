@@ -7,8 +7,6 @@
 #include "framework/Texture.h"
 #include "framework/Camera.h"
 
-const int BOARD_SIZE = 8;
-
 struct ChessBoard {
     struct Vertex {
         /// Vertex position

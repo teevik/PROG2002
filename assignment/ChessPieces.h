@@ -12,8 +12,16 @@ struct ChessPieces {
         glm::vec3 position;
     };
 
+    struct InstanceData {
+        glm::ivec2 piecePositions;
+        glm::vec2 _padding; // Padding to comply with std140
+        glm::vec4 color;
+    };
+
     const framework::VertexArrayObject<Vertex> object;
     const framework::Texture texture;
+    const std::vector<InstanceData> instances;
+    const uint32_t instanceBufferId;
 
     static ChessPieces create();
 

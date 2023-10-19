@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME} main.cpp
         ChessBoard.cpp
         ChessPieces.cpp
         ChessPieces.h
+        constants.h
 )
 
 # Specify libraries to link with the 'example_1' target.

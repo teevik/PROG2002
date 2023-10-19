@@ -2,9 +2,9 @@
 
 #include "framework/VertexArrayObject.h"
 #include "framework/Texture.h"
-#include "glm/ext/matrix_transform.hpp"
 #include "GLFW/glfw3.h"
 #include "framework/Camera.h"
+#include "constants.h"
 
 // language=glsl
 const std::string vertexShaderSource = R"(
@@ -104,10 +104,6 @@ ChessBoard ChessBoard::create() {
 
     // Model matrix
     auto chessboardModelMatrix = glm::mat4(1.0f);
-    chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
-    chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
-    chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
-
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size

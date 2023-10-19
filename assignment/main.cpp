@@ -2,9 +2,9 @@
 #include "stb_image.h"
 #include "framework/window.h"
 #include "framework/Camera.h"
-
 #include "ChessBoard.h"
 #include "ChessPieces.h"
+#include "constants.h"
 
 int main() {
     int width = 800;
@@ -14,9 +14,9 @@ int main() {
 
     // Camera
     float aspectRatio = (float) width / (float) height;
-    glm::vec3 position = {0.f, 0.f, 5.f};
+    glm::vec3 position = {0.f, -2.f, 1.f};
     glm::vec3 target = {0.f, 0.f, 0.f};
-    glm::vec3 up = {0.f, 1.f, 0.1f};
+    glm::vec3 up = {0.f, 1.f, 0.f};
 
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
