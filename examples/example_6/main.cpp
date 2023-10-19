@@ -80,7 +80,7 @@ int main() {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        object.draw(1, GL_TRIANGLES);
+        object.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
