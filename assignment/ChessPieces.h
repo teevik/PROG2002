@@ -20,10 +20,11 @@ struct ChessPieces {
 
     const framework::VertexArray<Vertex> object;
     const framework::Texture texture;
-    const std::vector<InstanceData> instances;
-    const uint32_t instanceBufferId;
+    const framework::UniformBuffer<InstanceData> instanceBuffer;
 
-    static ChessPieces create();
+    static ChessPieces create(const std::vector<InstanceData> &pieces);
+
+    void updatePieces(const std::vector<InstanceData> &pieces) const;
 
     void draw(bool useTextures, framework::Camera camera) const;
 };

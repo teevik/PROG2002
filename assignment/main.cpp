@@ -20,13 +20,34 @@ int main() {
 
     auto camera = framework::Camera::createPerspective(45.f, aspectRatio, position, target, up);
 
-    // Objects
-    auto chessboard = ChessBoard::create();
-    auto chessPieces = ChessPieces::create();
-
     // State
     static glm::ivec2 selectedTile;
     static bool useTextures = true;
+    static std::vector<ChessPieces::InstanceData> pieces;
+
+    for (int x = 0; x < BOARD_SIZE; ++x) {
+        for (int y = 0; y < TEAM_ROWS; ++y) {
+            pieces.push_back(
+                {
+                    .piecePositions = {x, y},
+                    .color = {1., 0., 0., 1.}
+                }
+            );
+        }
+
+        for (int y = BOARD_SIZE - TEAM_ROWS; y < BOARD_SIZE; ++y) {
+            pieces.push_back(
+                {
+                    .piecePositions = {x, y},
+                    .color = {0., 0., 1., 1.}
+                }
+            );
+        }
+    }
+
+    // Objects
+    auto chessboard = ChessBoard::create();
+    auto chessPieces = ChessPieces::create(pieces);
 
     // Handle input
     auto handleKeyInput = [](GLFWwindow *window, int key, int scancode, int action, int mods) {

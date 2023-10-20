@@ -3,6 +3,7 @@
 
 #include <string>
 #include "glm/ext/matrix_float4x4.hpp"
+#include "UniformBuffer.h"
 
 namespace framework {
     class Shader {
@@ -32,6 +33,15 @@ namespace framework {
         void uploadUniformFloat4(const std::string &name, glm::vec4 value) const;
 
         void uploadUniformMatrix4(const std::string &name, glm::mat4 value) const;
+
+        template<typename T>
+        void uploadUniformBuffer(const std::string &name, uint32_t slot, const UniformBuffer<T> &uniformBuffer) const {
+            glBindBufferBase(GL_UNIFORM_BUFFER, slot, uniformBuffer.uniformBufferId);
+            uint32_t uniformBufferIndex = glGetUniformBlockIndex(id, name.c_str());
+            assert(uniformBufferIndex != GL_INVALID_INDEX);
+
+            glUniformBlockBinding(id, uniformBufferIndex, slot);
+        }
     };
 }
 

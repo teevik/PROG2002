@@ -63,7 +63,7 @@ const std::string fragmentShaderSource = R"(
     }
 )";
 
-ChessPieces ChessPieces::create() {
+ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
     auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
     // Chessboard mesh
@@ -98,45 +98,21 @@ ChessPieces ChessPieces::create() {
 
     auto texture = framework::loadCubemap(RESOURCES_DIR + std::string("textures/cube_texture.png"));
 
-    std::vector<ChessPieces::InstanceData> instances;
-
-    for (int x = 0; x < BOARD_SIZE; ++x) {
-        for (int y = 0; y < TEAM_ROWS; ++y) {
-            instances.push_back(
-                {
-                    .piecePositions = {x, y},
-                    .color = {1., 0., 0., 1.}
-                }
-            );
-        }
-
-        for (int y = BOARD_SIZE - TEAM_ROWS; y < BOARD_SIZE; ++y) {
-            instances.push_back(
-                {
-                    .piecePositions = {x, y},
-                    .color = {0., 0., 1., 1.}
-                }
-            );
-        }
-    }
-
-    uint32_t uniformBufferId;
-    glCreateBuffers(1, &uniformBufferId);
-    glNamedBufferData(uniformBufferId, instances.size() * sizeof(InstanceData), instances.data(), GL_DYNAMIC_DRAW);
+    auto instanceBuffer = framework::UniformBuffer<InstanceData>::create(pieces);
 
     return {
         .object = std::move(object),
         .texture = std::move(texture),
-        .instances = std::move(instances),
-        .instanceBufferId = uniformBufferId
+        .instanceBuffer = std::move(instanceBuffer)
     };
 }
 
-void ChessPieces::draw(bool useTextures, framework::Camera camera) const {
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, this->instanceBufferId);
-    uint32_t instanceBufferIndex = glGetUniformBlockIndex(object.shader->id, "InstanceBuffer");
-    glUniformBlockBinding(object.shader->id, instanceBufferIndex, 0);
+void ChessPieces::updatePieces(const std::vector<InstanceData> &pieces) const {
+    instanceBuffer.updateData(pieces);
+}
 
+void ChessPieces::draw(bool useTextures, framework::Camera camera) const {
+    object.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
     object.shader->uploadUniformMatrix4("view", camera.viewMatrix);

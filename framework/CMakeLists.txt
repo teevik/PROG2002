@@ -13,7 +13,8 @@ add_library(framework
         include/framework/Texture.h
         src/Texture.cpp
         include/framework/Camera.h
-        src/Camera.cpp)
+        src/Camera.cpp
+        include/framework/UniformBuffer.h)
 target_include_directories(framework PUBLIC include)
 
 target_link_libraries(framework PUBLIC glad glfw glm stb)
