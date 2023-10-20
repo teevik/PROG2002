@@ -20,22 +20,25 @@ const std::string vertexShaderSource = R"(
     uniform mat4 model;
 
     struct InstanceData {
-        ivec2 piece_positions;
+        ivec2 position;
         vec4 color;
+        bool is_being_moved;
     };
 
     layout(std140) uniform InstanceBuffer {
         InstanceData instances[8 * 4];
     };
 
+    const vec4 YELLOW = vec4(1, 1, 0, 1);
+
     void main() {
         InstanceData instance_data = instances[gl_InstanceID];
 
         vertex_data.position = (model * vec4(position, 1.0)).xyz;
         vertex_data.texture_coordinates = position;
-        vertex_data.color = instance_data.color;
+        vertex_data.color = instance_data.is_being_moved ? YELLOW : instance_data.color;
 
-        ivec2 piece_position = instance_data.piece_positions;
+        ivec2 piece_position = instance_data.position;
         // TODO magic number
         float offset = 100. / 32.;
         vec2 piece_offset = vec2(piece_position.x * offset, -piece_position.y * offset);

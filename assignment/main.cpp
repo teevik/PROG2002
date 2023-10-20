@@ -13,7 +13,7 @@ static std::vector<ChessPieces::InstanceData> initialChessPieces() {
         for (int y = 0; y < TEAM_ROWS; ++y) {
             pieces.push_back(
                 {
-                    .piecePositions = {x, y},
+                    .position = {x, y},
                     .color = {1., 0., 0., 1.}
                 }
             );
@@ -22,7 +22,7 @@ static std::vector<ChessPieces::InstanceData> initialChessPieces() {
         for (int y = BOARD_SIZE - TEAM_ROWS; y < BOARD_SIZE; ++y) {
             pieces.push_back(
                 {
-                    .piecePositions = {x, y},
+                    .position = {x, y},
                     .color = {0., 0., 1., 1.}
                 }
             );
@@ -32,16 +32,11 @@ static std::vector<ChessPieces::InstanceData> initialChessPieces() {
     return pieces;
 }
 
-glm::vec3 getCameraPosition(float angle, float zoom) {
+glm::vec3 calculateCameraPosition(float angle, float zoom) {
     glm::vec3 position = {4.f * glm::cos(angle) * zoom, 4.f * glm::sin(angle) * zoom, 1.8f * zoom};
 
     return position;
 }
-
-const float CAMERA_SENSITIVITY = 1.75f;
-const float ZOOM_SENSITIVITY = 1.f;
-const float MIN_ZOOM = 0.6f;
-const float MAX_ZOOM = 1.5f;
 
 int main() {
     int width = 800;
@@ -52,13 +47,14 @@ int main() {
     // State
     static float cameraAngle = glm::pi<float>() * 1.5f;
     static float zoom = 1.f;
-    static glm::ivec2 selectedTile;
     static bool useTextures = true;
+    static glm::ivec2 selectedTile = {0, 0};
+    static std::optional<glm::ivec2> pieceBeingMovedPosition = {};
     static auto pieces = initialChessPieces();
 
     // Camera
     float aspectRatio = (float) width / (float) height;
-    glm::vec3 position = getCameraPosition(cameraAngle, zoom);
+    glm::vec3 position = calculateCameraPosition(cameraAngle, zoom);
     glm::vec3 target = {0.f, 0.f, 0.f};
     glm::vec3 up = {0.f, 0.f, 1.f};
 
@@ -66,34 +62,34 @@ int main() {
 
     // Objects
     auto chessboard = ChessBoard::create();
-    auto chessPieces = ChessPieces::create(pieces);
+    auto static chessPieces = ChessPieces::create(pieces);
 
     // Time
     double lastFrameTime;
-    static double deltaTime;
+    static float deltaTime;
 
     // Update function
     auto updateGame = [window]() {
         if (glfwGetKey(window, GLFW_KEY_L)) {
             cameraAngle += CAMERA_SENSITIVITY * deltaTime;
-            camera.position = getCameraPosition(cameraAngle, zoom);
+            camera.position = calculateCameraPosition(cameraAngle, zoom);
         }
 
         if (glfwGetKey(window, GLFW_KEY_H)) {
             cameraAngle -= CAMERA_SENSITIVITY * deltaTime;
-            camera.position = getCameraPosition(cameraAngle, zoom);
+            camera.position = calculateCameraPosition(cameraAngle, zoom);
         }
 
         if (glfwGetKey(window, GLFW_KEY_P)) {
             zoom -= ZOOM_SENSITIVITY * deltaTime;
             zoom = glm::clamp(zoom, MIN_ZOOM, MAX_ZOOM);
-            camera.position = getCameraPosition(cameraAngle, zoom);
+            camera.position = calculateCameraPosition(cameraAngle, zoom);
         }
 
         if (glfwGetKey(window, GLFW_KEY_O)) {
             zoom += ZOOM_SENSITIVITY * deltaTime;
             zoom = glm::clamp(zoom, MIN_ZOOM, MAX_ZOOM);
-            camera.position = getCameraPosition(cameraAngle, zoom);
+            camera.position = calculateCameraPosition(cameraAngle, zoom);
         }
     };
 
@@ -106,7 +102,7 @@ int main() {
                     useTextures = !useTextures;
                     break;
 
-                    // Tile selection
+                    // Tile selection move
                 case GLFW_KEY_LEFT:
                     if (selectedTile.x > 0) selectedTile.x -= 1;
                     break;
@@ -119,6 +115,45 @@ int main() {
                 case GLFW_KEY_DOWN:
                     if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
                     break;
+
+                    // Tile select
+                case GLFW_KEY_ENTER: {
+                    auto pieceAtSelectedTile = std::ranges::find_if(pieces, [](const ChessPieces::InstanceData &piece) {
+                        return piece.position == selectedTile;
+                    });
+
+                    if (!pieceBeingMovedPosition.has_value()) {
+                        // Nothing is being moved
+
+                        if (pieceAtSelectedTile != pieces.end()) {
+                            pieceAtSelectedTile->isBeingMoved = true;
+                            chessPieces.updatePieces(pieces);
+
+                            pieceBeingMovedPosition = selectedTile;
+                        }
+                    } else {
+                        // A piece is being moved
+
+                        auto pieceBeingMoved = std::ranges::find_if(
+                            pieces,
+                            [](const ChessPieces::InstanceData &piece) {
+                                return piece.position ==
+                                       pieceBeingMovedPosition;
+                            }
+                        );
+
+                        if (pieceAtSelectedTile == pieces.end()) {
+                            // Can move to selected tile
+                            pieceBeingMoved->position = selectedTile;
+                        }
+
+                        pieceBeingMovedPosition = {};
+                        pieceBeingMoved->isBeingMoved = false;
+                        chessPieces.updatePieces(pieces);
+                    }
+                    break;
+                }
+
 
                 default:
                     break;
