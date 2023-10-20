@@ -1,13 +1,5 @@
 #include "framework/Camera.h"
 
-static glm::mat4 calculateViewMatrix(glm::vec3 position, glm::vec3 target, glm::vec3 up) {
-    return glm::lookAt(
-        position,
-        target,
-        up
-    );
-}
-
 namespace framework {
     Camera Camera::createOrthographic(
         float size,
@@ -26,9 +18,7 @@ namespace framework {
             .target = target,
             .up = up
         };
-
-        camera.viewMatrix = calculateViewMatrix(position, target, up);
-
+        
         return camera;
     }
 
@@ -50,12 +40,15 @@ namespace framework {
             .up = up
         };
 
-        camera.viewMatrix = calculateViewMatrix(position, target, up);
-
         return camera;
     }
 
-    void Camera::update() {
-        viewMatrix = calculateViewMatrix(position, target, up);
+
+    glm::mat4 Camera::viewMatrix() const {
+        return glm::lookAt(
+            position,
+            target,
+            up
+        );
     }
 }

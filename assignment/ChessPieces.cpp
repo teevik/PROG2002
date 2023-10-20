@@ -123,7 +123,7 @@ void ChessPieces::draw(bool useTextures, framework::Camera camera) const {
     object.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    object.shader->uploadUniformMatrix4("view", camera.viewMatrix);
+    object.shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     texture.bind();
     object.drawInstanced(BOARD_PIECES);

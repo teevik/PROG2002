@@ -135,7 +135,7 @@ ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, framework::Camera &c
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
 
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    object.shader->uploadUniformMatrix4("view", camera.viewMatrix);
+    object.shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     texture.bind();
     object.draw();

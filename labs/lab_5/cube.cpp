@@ -89,7 +89,7 @@ Cube Cube::create(GLFWwindow *window, framework::Camera camera) {
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    cubeShader->uploadUniformMatrix4("view", camera.viewMatrix);
+    cubeShader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     auto object = framework::VertexArray<Cube::Vertex>::create(
         cubeShader,

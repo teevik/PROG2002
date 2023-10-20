@@ -109,7 +109,7 @@ Chessboard Chessboard::create(framework::Camera camera) {
 
     // Transformation
     chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix);
+    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix());
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size
