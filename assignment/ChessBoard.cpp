@@ -130,7 +130,7 @@ ChessBoard ChessBoard::create() {
 }
 
 void
-ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, framework::Camera &camera) const {
+ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const {
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
 

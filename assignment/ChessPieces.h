@@ -26,7 +26,7 @@ struct ChessPieces {
 
     void updatePieces(const std::vector<InstanceData> &pieces) const;
 
-    void draw(bool useTextures, framework::Camera camera) const;
+    void draw(bool useTextures, const framework::Camera &camera) const;
 };
 
 #endif //PROG2002_CHESSPIECES_H

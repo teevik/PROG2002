@@ -119,7 +119,7 @@ void ChessPieces::updatePieces(const std::vector<InstanceData> &pieces) const {
     instanceBuffer.updateData(pieces);
 }
 
-void ChessPieces::draw(bool useTextures, framework::Camera camera) const {
+void ChessPieces::draw(bool useTextures, const framework::Camera &camera) const {
     object.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);

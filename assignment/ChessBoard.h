@@ -24,7 +24,7 @@ struct ChessBoard {
 
     static ChessBoard create();
 
-    void draw(glm::ivec2 selectedTile, bool useTextures, framework::Camera &camera) const;
+    void draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const;
 };
 
 #endif //PROG2002_CHESSBOARD_H
