@@ -79,6 +79,9 @@ namespace framework {
             glDrawElements(drawMode, elementsAmount, GL_UNSIGNED_INT, nullptr);
         }
 
+        /**
+         * Draw with given amount of instances, and use `gl_InstanceID` in shader to differentiate instances
+         */
         void drawInstanced(uint32_t instances, GLenum drawMode = GL_TRIANGLES) const {
             glUseProgram(shader->id);
             glBindVertexArray(vertexArrayId);

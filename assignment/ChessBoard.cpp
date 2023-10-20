@@ -26,6 +26,7 @@ const std::string vertexShaderSource = R"(
     void main() {
         vertex_data.texture_coordinates = texture_coordinates;
         vertex_data.grid_position = grid_position;
+
         gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
     }
 )";
@@ -69,6 +70,12 @@ const std::string fragmentShaderSource = R"(
 ChessBoard ChessBoard::create() {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
+    // Model matrix (unit)
+    chessboardShader->uploadUniformMatrix4("model", glm::mat4(1.0f));
+
+    // Board size
+    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
+
     // Chessboard mesh
     std::vector<ChessBoard::Vertex> chessboardVertices = {
         { // right top
@@ -102,13 +109,7 @@ ChessBoard ChessBoard::create() {
         2 // left top
     };
 
-    // Model matrix
-    auto chessboardModelMatrix = glm::mat4(1.0f);
-    chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
-
-    // Board size
-    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
-
+    // VertexArray
     auto object = framework::VertexArray<ChessBoard::Vertex>::create(
         chessboardShader,
         {

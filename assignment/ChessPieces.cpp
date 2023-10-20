@@ -36,6 +36,7 @@ const std::string vertexShaderSource = R"(
         vertex_data.color = instance_data.color;
 
         ivec2 piece_position = instance_data.piece_positions;
+        // TODO magic number
         float offset = 100. / 32.;
         vec2 piece_offset = vec2(piece_position.x * offset, -piece_position.y * offset);
         gl_Position = projection * view * model * vec4(position.xy + piece_offset, position.z, 1.0);
@@ -59,12 +60,29 @@ const std::string fragmentShaderSource = R"(
 
     void main() {
         vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
+
         color = mix(vertex_data.color, texture_color, use_textures ? 0.5 : 0);
     }
 )";
 
+static glm::mat4 modelMatrix() {
+    auto modelMatrix = glm::mat4(1.0f);
+
+    // TODO magic number
+    float unit = 8.f / 32.f;
+    // Transform model to {0, 0} on the board
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(unit * -3.5f, unit * 3.5f, 0.f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.08f));
+
+    // Float above board
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.f, 1.2f));
+
+    return modelMatrix;
+}
+
 ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
     auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+    cubeShader->uploadUniformMatrix4("model", modelMatrix());
 
     // Chessboard mesh
     auto cubeVertices =
@@ -76,17 +94,7 @@ ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
 
     auto cubeIndices = framework::unitCube::indices;
 
-    // Model
-    auto modelMatrix = glm::mat4(1.0f);
-    float unit = 8.f / 32.f;
-    // Transform model to {0, 0} on the board
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(unit * -3.5f, unit * 3.5f, 0.f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.08f));
-    // Float above board
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.f, 1.2f));
-
-    cubeShader->uploadUniformMatrix4("model", modelMatrix);
-
+    // VertexArray
     auto object = framework::VertexArray<ChessPieces::Vertex>::create(
         cubeShader,
         {
