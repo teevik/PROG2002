@@ -49,7 +49,7 @@ int main() {
     static float zoom = 1.f;
     static bool useTextures = true;
     static glm::ivec2 selectedTile = {0, 0};
-    static std::optional<glm::ivec2> pieceBeingMovedPosition = {};
+    static std::optional<glm::ivec2> pieceBeingMoved = {};
     static auto pieces = initialChessPieces();
 
     // Camera
@@ -121,40 +121,34 @@ int main() {
                     auto pieceAtSelectedTile = std::ranges::find_if(pieces, [](const ChessPieces::InstanceData &piece) {
                         return piece.position == selectedTile;
                     });
+                    bool selectedTileHasExistingPiece = pieceAtSelectedTile != pieces.end();
 
-                    if (!pieceBeingMovedPosition.has_value()) {
+                    if (!pieceBeingMoved.has_value()) {
                         // Nothing is being moved
 
-                        if (pieceAtSelectedTile != pieces.end()) {
-                            pieceAtSelectedTile->isBeingMoved = true;
-                            chessPieces.updatePieces(pieces);
-
-                            pieceBeingMovedPosition = selectedTile;
+                        if (selectedTileHasExistingPiece) {
+                            pieceBeingMoved = selectedTile;
                         }
                     } else {
                         // A piece is being moved
-
-                        auto pieceBeingMoved = std::ranges::find_if(
+                        auto movedPiece = std::ranges::find_if(
                             pieces,
                             [](const ChessPieces::InstanceData &piece) {
-                                return piece.position ==
-                                       pieceBeingMovedPosition;
+                                return piece.position == pieceBeingMoved;
                             }
                         );
 
-                        if (pieceAtSelectedTile == pieces.end()) {
+                        if (!selectedTileHasExistingPiece) {
                             // Can move to selected tile
-                            pieceBeingMoved->position = selectedTile;
+                            movedPiece->position = selectedTile;
                         }
 
-                        pieceBeingMovedPosition = {};
-                        pieceBeingMoved->isBeingMoved = false;
+                        pieceBeingMoved = {};
                         chessPieces.updatePieces(pieces);
                     }
                     break;
                 }
-
-
+                
                 default:
                     break;
             }
@@ -185,7 +179,7 @@ int main() {
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         chessboard.draw(selectedTile, useTextures, camera);
-        chessPieces.draw(useTextures, camera);
+        chessPieces.draw(selectedTile, pieceBeingMoved, useTextures, camera);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

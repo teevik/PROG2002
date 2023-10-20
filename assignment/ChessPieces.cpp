@@ -19,16 +19,19 @@ const std::string vertexShaderSource = R"(
     uniform mat4 view;
     uniform mat4 model;
 
+    uniform ivec2 selected_tile;
+    uniform ivec2 piece_being_moved;
+
     struct InstanceData {
         ivec2 position;
         vec4 color;
-        bool is_being_moved;
     };
 
     layout(std140) uniform InstanceBuffer {
         InstanceData instances[8 * 4];
     };
 
+    const vec4 GREEN = vec4(0, 1, 0, 1);
     const vec4 YELLOW = vec4(1, 1, 0, 1);
 
     void main() {
@@ -36,9 +39,17 @@ const std::string vertexShaderSource = R"(
 
         vertex_data.position = (model * vec4(position, 1.0)).xyz;
         vertex_data.texture_coordinates = position;
-        vertex_data.color = instance_data.is_being_moved ? YELLOW : instance_data.color;
 
         ivec2 piece_position = instance_data.position;
+
+        if (piece_position == piece_being_moved) {
+            vertex_data.color = YELLOW;
+        } else if (piece_position == selected_tile) {
+            vertex_data.color = GREEN;
+        } else {
+            vertex_data.color = instance_data.color;
+        }
+
         // TODO magic number
         float offset = 100. / 32.;
         vec2 piece_offset = vec2(piece_position.x * offset, -piece_position.y * offset);
@@ -122,7 +133,15 @@ void ChessPieces::updatePieces(const std::vector<InstanceData> &pieces) const {
     instanceBuffer.updateData(pieces);
 }
 
-void ChessPieces::draw(bool useTextures, const framework::Camera &camera) const {
+void ChessPieces::draw(
+    glm::ivec2 selectedTile,
+    std::optional<glm::ivec2> pieceBeingMoved,
+    bool useTextures,
+    const framework::Camera &camera
+) const {
+    object.shader->uploadUniformInt2("selected_tile", selectedTile);
+    object.shader->uploadUniformInt2("piece_being_moved", pieceBeingMoved.value_or(glm::ivec2(-1, -1)));
+
     object.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
