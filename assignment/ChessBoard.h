@@ -3,7 +3,7 @@
 
 #include "glm/ext/vector_int2.hpp"
 #include "glm/vec2.hpp"
-#include "framework/VertexArrayObject.h"
+#include "framework/VertexArray.h"
 #include "framework/Texture.h"
 #include "framework/Camera.h"
 
@@ -19,7 +19,7 @@ struct ChessBoard {
         glm::vec2 gridPosition;
     };
 
-    const framework::VertexArrayObject<Vertex> object;
+    const framework::VertexArray<Vertex> object;
     const framework::Texture texture;
 
     static ChessBoard create();

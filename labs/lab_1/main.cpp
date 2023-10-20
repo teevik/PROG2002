@@ -86,7 +86,7 @@ int main() {
     mesh.insert(mesh.end(), circleTriangles.begin(), circleTriangles.end());
     mesh.insert(mesh.end(), triangle.begin(), triangle.end());
 
-    auto object = framework::VertexArrayObject<Vertex>::create(
+    auto object = framework::VertexArray<Vertex>::create(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},

@@ -21,7 +21,7 @@ struct Chessboard {
         glm::vec2 gridPosition;
     };
 
-    const framework::VertexArrayObject<Vertex> object;
+    const framework::VertexArray<Vertex> object;
     glm::ivec2 selectedTile;
 
     static Chessboard create(glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
@@ -119,7 +119,7 @@ struct Chessboard {
         // Board size
         chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-        auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
+        auto object = framework::VertexArray<Chessboard::Vertex>::create(
             chessboardShader,
             {
                 {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
@@ -173,7 +173,7 @@ struct Cube {
     };
 
     GLFWwindow *window;
-    const framework::VertexArrayObject<Vertex> object;
+    const framework::VertexArray<Vertex> object;
 
     static Cube create(GLFWwindow *window, glm::mat4 projectionMatrix, glm::mat4 viewMatrix) {
         // language=glsl
@@ -218,7 +218,7 @@ struct Cube {
         cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
         cubeShader->uploadUniformMatrix4("view", viewMatrix);
 
-        auto object = framework::VertexArrayObject<Cube::Vertex>::create(
+        auto object = framework::VertexArray<Cube::Vertex>::create(
             cubeShader,
             {
                 {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},

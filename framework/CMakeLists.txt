@@ -6,7 +6,7 @@ add_library(framework
         src/Shader.cpp
         src/window.cpp
         include/framework/geometry.h
-        include/framework/VertexArrayObject.h
+        include/framework/VertexArray.h
         include/framework/Shader.h
         include/framework/window.h
         src/geometry.cpp

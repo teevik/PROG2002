@@ -55,7 +55,7 @@ Cube Cube::create(GLFWwindow *window, framework::Camera camera) {
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
     cubeShader->uploadUniformMatrix4("view", camera.viewMatrix);
 
-    auto object = framework::VertexArrayObject<Cube::Vertex>::create(
+    auto object = framework::VertexArray<Cube::Vertex>::create(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},

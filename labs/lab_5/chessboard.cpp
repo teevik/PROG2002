@@ -1,6 +1,6 @@
 #include "chessboard.h"
 
-#include "framework/VertexArrayObject.h"
+#include "framework/VertexArray.h"
 #include "framework/Texture.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "GLFW/glfw3.h"
@@ -115,7 +115,7 @@ Chessboard Chessboard::create(framework::Camera camera) {
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
+    auto object = framework::VertexArray<Chessboard::Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},

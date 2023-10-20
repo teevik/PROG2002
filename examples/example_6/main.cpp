@@ -55,7 +55,7 @@ int main() {
 
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArrayObject<glm::vec2>::create(
+    auto object = framework::VertexArray<glm::vec2>::create(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = 0},

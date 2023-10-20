@@ -87,7 +87,7 @@ ChessPieces ChessPieces::create() {
 
     cubeShader->uploadUniformMatrix4("model", modelMatrix);
 
-    auto object = framework::VertexArrayObject<ChessPieces::Vertex>::create(
+    auto object = framework::VertexArray<ChessPieces::Vertex>::create(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(ChessPieces::Vertex, position)},

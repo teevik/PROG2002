@@ -1,7 +1,7 @@
 #ifndef PROG2002_GEOMETRY_H
 #define PROG2002_GEOMETRY_H
 
-#include "VertexArrayObject.h"
+#include "VertexArray.h"
 #include "glm/vec2.hpp"
 
 namespace framework {

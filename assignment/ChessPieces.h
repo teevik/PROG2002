@@ -2,7 +2,7 @@
 #define PROG2002_CHESSPIECES_H
 
 #include "glm/vec3.hpp"
-#include "framework/VertexArrayObject.h"
+#include "framework/VertexArray.h"
 #include "framework/Texture.h"
 #include "framework/Camera.h"
 
@@ -18,7 +18,7 @@ struct ChessPieces {
         glm::vec4 color;
     };
 
-    const framework::VertexArrayObject<Vertex> object;
+    const framework::VertexArray<Vertex> object;
     const framework::Texture texture;
     const std::vector<InstanceData> instances;
     const uint32_t instanceBufferId;

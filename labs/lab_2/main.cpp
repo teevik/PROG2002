@@ -102,7 +102,7 @@ int main() {
 
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArrayObject<Vertex>::create(
+    auto object = framework::VertexArray<Vertex>::create(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},

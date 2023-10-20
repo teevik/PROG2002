@@ -3,7 +3,7 @@
 
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/vec3.hpp"
-#include "framework/VertexArrayObject.h"
+#include "framework/VertexArray.h"
 #include "framework/Texture.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "framework/geometry.h"
@@ -18,7 +18,7 @@ struct Cube {
     };
 
     GLFWwindow *window;
-    const framework::VertexArrayObject<Vertex> object;
+    const framework::VertexArray<Vertex> object;
     const framework::Texture texture;
 
     static Cube create(GLFWwindow *window, framework::Camera camera);
