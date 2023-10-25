@@ -1,61 +1,74 @@
 #include "ChessPieces.h"
 #include "framework/geometry.h"
-#include "glm/gtx/euler_angles.hpp"
 #include "constants.h"
+#include <regex>
 
-// language=glsl
-const std::string vertexShaderSource = R"(
-    #version 450 core
+std::string vertexShaderSource() {
+    // language=glsl
+    std::string shader = R"(
+        #version 450 core
 
-    layout(location = 0) in vec3 position;
+        layout(location = 0) in vec3 position;
 
-    out VertexData {
-        vec3 position;
-        vec3 texture_coordinates;
-        vec4 color;
-    } vertex_data;
+        out VertexData {
+            vec3 position;
+            vec3 texture_coordinates;
+            vec4 color;
+        } vertex_data;
 
-    uniform mat4 projection;
-    uniform mat4 view;
-    uniform mat4 model;
+        uniform mat4 projection;
+        uniform mat4 view;
+        uniform mat4 model;
 
-    uniform ivec2 selected_tile;
-    uniform ivec2 piece_being_moved;
+        uniform ivec2 selected_tile;
+        uniform ivec2 piece_being_moved;
 
-    struct InstanceData {
-        ivec2 position;
-        vec4 color;
-    };
+        struct InstanceData {
+            ivec2 position;
+            vec4 color;
+        };
 
-    layout(std140) uniform InstanceBuffer {
-        InstanceData instances[8 * 4];
-    };
+        layout(std140) uniform InstanceBuffer {
+            InstanceData instances[BOARD_PIECES];
+        };
 
-    const vec4 GREEN = vec4(0, 1, 0, 1);
-    const vec4 YELLOW = vec4(1, 1, 0, 1);
+        const vec4 GREEN = vec4(0, 1, 0, 1);
+        const vec4 YELLOW = vec4(1, 1, 0, 1);
 
-    void main() {
-        InstanceData instance_data = instances[gl_InstanceID];
+        void main() {
+            InstanceData instance_data = instances[gl_InstanceID];
 
-        vertex_data.position = (model * vec4(position, 1.0)).xyz;
-        vertex_data.texture_coordinates = position;
+            vertex_data.position = (model * vec4(position, 1.0)).xyz;
+            vertex_data.texture_coordinates = position;
 
-        ivec2 piece_position = instance_data.position;
+            ivec2 piece_position = instance_data.position;
 
-        if (piece_position == piece_being_moved) {
-            vertex_data.color = YELLOW;
-        } else if (piece_position == selected_tile) {
-            vertex_data.color = GREEN;
-        } else {
-            vertex_data.color = instance_data.color;
+            if (piece_position == piece_being_moved) {
+                vertex_data.color = YELLOW;
+            } else if (piece_position == selected_tile) {
+                vertex_data.color = GREEN;
+            } else {
+                vertex_data.color = instance_data.color;
+            }
+
+            float offset = 4. / (float(BOARD_SIZE));
+
+            vec2 piece_origin = vec2(-2 + offset / 2., 2 - offset / 2.);
+            vec2 piece_offset = vec2(offset, -offset) * piece_position;
+
+            gl_Position =
+                projection * view * model * vec4(position.xyz, 1.0) + // Mesh position
+                projection * view * vec4(piece_origin + piece_offset, 0, 1); // Instance position
         }
+    )";
 
-        // TODO magic number
-        float offset = 100. / 32.;
-        vec2 piece_offset = vec2(piece_position.x * offset, -piece_position.y * offset);
-        gl_Position = projection * view * model * vec4(position.xy + piece_offset, position.z, 1.0);
-    }
-)";
+    // Replace constants
+    shader = std::regex_replace(shader, std::regex("BOARD_SIZE"), std::to_string(BOARD_SIZE));
+    shader = std::regex_replace(shader, std::regex("BOARD_PIECES"), std::to_string(BOARD_PIECES));
+
+    return shader;
+}
+
 
 // language=glsl
 const std::string fragmentShaderSource = R"(
@@ -82,20 +95,14 @@ const std::string fragmentShaderSource = R"(
 static glm::mat4 modelMatrix() {
     auto modelMatrix = glm::mat4(1.0f);
 
-    // TODO magic number
-    float unit = 8.f / 32.f;
-    // Transform model to {0, 0} on the board
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(unit * -3.5f, unit * 3.5f, 0.f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.08f));
-
-    // Float above board
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(PIECE_SCALE));
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 0.f, 1.2f));
 
     return modelMatrix;
 }
 
 ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
-    auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
+    auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource(), fragmentShaderSource);
     cubeShader->uploadUniformMatrix4("model", modelMatrix());
 
     // Chessboard mesh

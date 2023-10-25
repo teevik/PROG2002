@@ -3,7 +3,8 @@
 
 const int BOARD_SIZE = 8;
 const int TEAM_ROWS = 2;
-const int BOARD_PIECES = BOARD_SIZE * TEAM_ROWS * 2;
+const int BOARD_PIECES = BOARD_SIZE * TEAM_ROWS * 2; // 2 teams
+const float PIECE_SCALE = 1. / (float) BOARD_SIZE;
 
 const float CAMERA_SENSITIVITY = 1.75f;
 const float ZOOM_SENSITIVITY = 1.f;
