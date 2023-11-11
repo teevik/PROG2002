@@ -6,6 +6,7 @@
 #include "ChessPieces.h"
 #include "constants.h"
 
+/// Initial chess pieces
 static std::vector<ChessPieces::InstanceData> initialChessPieces() {
     std::vector<ChessPieces::InstanceData> pieces;
 
@@ -32,29 +33,149 @@ static std::vector<ChessPieces::InstanceData> initialChessPieces() {
     return pieces;
 }
 
+/// Find camera position that orbits around origin given `angle` and `zoom`,
 glm::vec3 calculateCameraPosition(float angle, float zoom) {
     glm::vec3 position = {4.f * glm::cos(angle) * zoom, 4.f * glm::sin(angle) * zoom, 1.8f * zoom};
 
     return position;
 }
 
+struct GameState {
+    /// Camera angle
+    float cameraAngle;
+
+    /// Camera zoom
+    float cameraZoom;
+
+    /// Whether to render with textures or not
+    bool useTextures;
+
+    /// The position of the tile that is currently being hovered by the player
+    glm::ivec2 selectedTile;
+
+    /// The position of the piece that is currently being moved, empty if not moving one
+    std::optional<glm::ivec2> pieceBeingMoved;
+
+    /// Position and color of each chess piece, can be directly loaded into a UniformBuffer
+    std::vector<ChessPieces::InstanceData> pieces;
+
+    enum class HandleKeyInputResult {
+        /// Nothing
+        None,
+        /// GameState::pieces was changed, will need to upload to the UniformBuffer again
+        UpdatePieces
+    };
+
+    /// Handle key input from GLFW
+    HandleKeyInputResult handleKeyInput(int key, int action) {
+        if (action != GLFW_PRESS) return HandleKeyInputResult::None;
+
+        switch (key) {
+            // Toggle textures
+            case GLFW_KEY_T:
+                useTextures = !useTextures;
+                break;
+
+                // Tile selection move
+            case GLFW_KEY_LEFT:
+                if (selectedTile.x > 0) selectedTile.x -= 1;
+                break;
+            case GLFW_KEY_RIGHT:
+                if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
+                break;
+            case GLFW_KEY_UP:
+                if (selectedTile.y > 0) selectedTile.y -= 1;
+                break;
+            case GLFW_KEY_DOWN:
+                if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
+                break;
+
+                // Tile select
+            case GLFW_KEY_ENTER: {
+                auto pieceAtSelectedTile = std::ranges::find_if(
+                    pieces,
+                    [this]
+                        (const ChessPieces::InstanceData &piece) {
+                        return piece.position == selectedTile;
+                    }
+                );
+                bool selectedTileHasExistingPiece = pieceAtSelectedTile != pieces.end();
+
+                if (!pieceBeingMoved.has_value()) {
+                    // Nothing is being moved
+                    if (selectedTileHasExistingPiece) {
+                        pieceBeingMoved = selectedTile;
+                    }
+                } else {
+                    // A piece is being moved
+                    auto movedPiece = std::ranges::find_if(
+                        pieces,
+                        [this](const ChessPieces::InstanceData &piece) {
+                            return piece.position == pieceBeingMoved;
+                        }
+                    );
+
+                    if (!selectedTileHasExistingPiece) {
+                        // Can move to selected tile
+                        movedPiece->position = selectedTile;
+                    }
+
+                    pieceBeingMoved = {};
+                    return HandleKeyInputResult::UpdatePieces;
+                }
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        return HandleKeyInputResult::None;
+    }
+
+    /// Game loop update
+    void update(GLFWwindow *window, float deltaTime) {
+        if (glfwGetKey(window, GLFW_KEY_L)) {
+            cameraAngle += CAMERA_SENSITIVITY * deltaTime;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_H)) {
+            cameraAngle -= CAMERA_SENSITIVITY * deltaTime;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_P)) {
+            cameraZoom -= ZOOM_SENSITIVITY * deltaTime;
+            cameraZoom = glm::clamp(cameraZoom, MIN_ZOOM, MAX_ZOOM);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_O)) {
+            cameraZoom += ZOOM_SENSITIVITY * deltaTime;
+            cameraZoom = glm::clamp(cameraZoom, MIN_ZOOM, MAX_ZOOM);
+        }
+    };
+
+};
+
+
 int main() {
     int width = 800;
     int height = 600;
+    float aspectRatio = (float) width / (float) height;
 
     auto window = framework::createWindow(width, height, "Assignment");
 
-    // State
-    static float cameraAngle = glm::pi<float>() * 1.5f;
-    static float zoom = 1.f;
-    static bool useTextures = true;
-    static glm::ivec2 selectedTile = {0, 0};
-    static std::optional<glm::ivec2> pieceBeingMoved = {};
-    static auto pieces = initialChessPieces();
+    // Game state, only static so that it can be used in glfwSetKeyCallback
+    static GameState gameState = {
+        .cameraAngle = glm::pi<float>() * 1.5f,
+        .cameraZoom = 1.f,
+        .useTextures = true,
+        .selectedTile = {0, 0},
+        .pieceBeingMoved = {},
+        .pieces = initialChessPieces()
+    };
 
     // Camera
-    float aspectRatio = (float) width / (float) height;
-    glm::vec3 position = calculateCameraPosition(cameraAngle, zoom);
+    glm::vec3 position = calculateCameraPosition(gameState.cameraAngle, gameState.cameraZoom);
     glm::vec3 target = {0.f, 0.f, 0.f};
     glm::vec3 up = {0.f, 0.f, 1.f};
 
@@ -62,96 +183,22 @@ int main() {
 
     // Objects
     auto chessboard = ChessBoard::create();
-    auto static chessPieces = ChessPieces::create(pieces);
+    auto static chessPieces = ChessPieces::create(gameState.pieces);
 
     // Time
     double lastFrameTime;
     static float deltaTime;
 
-    // Update function
-    auto updateGame = [window]() {
-        if (glfwGetKey(window, GLFW_KEY_L)) {
-            cameraAngle += CAMERA_SENSITIVITY * deltaTime;
-            camera.position = calculateCameraPosition(cameraAngle, zoom);
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_H)) {
-            cameraAngle -= CAMERA_SENSITIVITY * deltaTime;
-            camera.position = calculateCameraPosition(cameraAngle, zoom);
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_P)) {
-            zoom -= ZOOM_SENSITIVITY * deltaTime;
-            zoom = glm::clamp(zoom, MIN_ZOOM, MAX_ZOOM);
-            camera.position = calculateCameraPosition(cameraAngle, zoom);
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_O)) {
-            zoom += ZOOM_SENSITIVITY * deltaTime;
-            zoom = glm::clamp(zoom, MIN_ZOOM, MAX_ZOOM);
-            camera.position = calculateCameraPosition(cameraAngle, zoom);
-        }
-    };
-
     // Handle input
     auto handleKeyInput = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-        if (action == GLFW_PRESS) {
-            switch (key) {
-                // Toggle textures
-                case GLFW_KEY_T:
-                    useTextures = !useTextures;
-                    break;
+        auto result = gameState.handleKeyInput(key, action);
 
-                    // Tile selection move
-                case GLFW_KEY_LEFT:
-                    if (selectedTile.x > 0) selectedTile.x -= 1;
-                    break;
-                case GLFW_KEY_RIGHT:
-                    if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
-                    break;
-                case GLFW_KEY_UP:
-                    if (selectedTile.y > 0) selectedTile.y -= 1;
-                    break;
-                case GLFW_KEY_DOWN:
-                    if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
-                    break;
-
-                    // Tile select
-                case GLFW_KEY_ENTER: {
-                    auto pieceAtSelectedTile = std::ranges::find_if(pieces, [](const ChessPieces::InstanceData &piece) {
-                        return piece.position == selectedTile;
-                    });
-                    bool selectedTileHasExistingPiece = pieceAtSelectedTile != pieces.end();
-
-                    if (!pieceBeingMoved.has_value()) {
-                        // Nothing is being moved
-
-                        if (selectedTileHasExistingPiece) {
-                            pieceBeingMoved = selectedTile;
-                        }
-                    } else {
-                        // A piece is being moved
-                        auto movedPiece = std::ranges::find_if(
-                            pieces,
-                            [](const ChessPieces::InstanceData &piece) {
-                                return piece.position == pieceBeingMoved;
-                            }
-                        );
-
-                        if (!selectedTileHasExistingPiece) {
-                            // Can move to selected tile
-                            movedPiece->position = selectedTile;
-                        }
-
-                        pieceBeingMoved = {};
-                        chessPieces.updatePieces(pieces);
-                    }
-                    break;
-                }
-
-                default:
-                    break;
-            }
+        switch (result) {
+            case GameState::HandleKeyInputResult::None:
+                break;
+            case GameState::HandleKeyInputResult::UpdatePieces:
+                chessPieces.updatePieces(gameState.pieces);
+                break;
         }
     };
     glfwSetKeyCallback(window, handleKeyInput);
@@ -166,25 +213,26 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         // Set deltaTime
         auto time = glfwGetTime();
-        deltaTime = time - lastFrameTime;
+        deltaTime = (float) (time - lastFrameTime);
         lastFrameTime = time;
 
         // Update
         glfwPollEvents();
-        updateGame();
+        gameState.update(window, deltaTime);
+        camera.position = calculateCameraPosition(gameState.cameraAngle, gameState.cameraZoom);
 
         // Background color
         glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        chessboard.draw(selectedTile, useTextures, camera);
-        chessPieces.draw(selectedTile, pieceBeingMoved, useTextures, camera);
+        chessboard.draw(gameState.selectedTile, gameState.useTextures, camera);
+        chessPieces.draw(gameState.selectedTile, gameState.pieceBeingMoved, gameState.useTextures, camera);
 
         // Swap front and back buffer
         glfwSwapBuffers(window);
 
-        // Escape
+        // Escape button
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
