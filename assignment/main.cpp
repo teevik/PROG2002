@@ -59,16 +59,12 @@ struct GameState {
     /// Position and color of each chess piece, can be directly loaded into a UniformBuffer
     std::vector<ChessPieces::InstanceData> pieces;
 
-    enum class HandleKeyInputResult {
-        /// Nothing
-        None,
-        /// GameState::pieces was changed, will need to upload to the UniformBuffer again
-        UpdatePieces
-    };
+    /// Whether pieces has been changed, will need to upload to the UniformBuffer again
+    bool piecesHasUpdated;
 
     /// Handle key input from GLFW
-    HandleKeyInputResult handleKeyInput(int key, int action) {
-        if (action != GLFW_PRESS) return HandleKeyInputResult::None;
+    void handleKeyInput(int key, int action) {
+        if (action != GLFW_PRESS) return;
 
         switch (key) {
             // Toggle textures
@@ -121,7 +117,7 @@ struct GameState {
                     }
 
                     pieceBeingMoved = {};
-                    return HandleKeyInputResult::UpdatePieces;
+                    piecesHasUpdated = true;
                 }
                 break;
             }
@@ -129,8 +125,6 @@ struct GameState {
             default:
                 break;
         }
-
-        return HandleKeyInputResult::None;
     }
 
     /// Game loop update
@@ -183,23 +177,15 @@ int main() {
 
     // Objects
     auto chessboard = ChessBoard::create();
-    auto static chessPieces = ChessPieces::create(gameState.pieces);
+    auto chessPieces = ChessPieces::create(gameState.pieces);
 
     // Time
     double lastFrameTime;
-    static float deltaTime;
+    float deltaTime;
 
     // Handle input
     auto handleKeyInput = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-        auto result = gameState.handleKeyInput(key, action);
-
-        switch (result) {
-            case GameState::HandleKeyInputResult::None:
-                break;
-            case GameState::HandleKeyInputResult::UpdatePieces:
-                chessPieces.updatePieces(gameState.pieces);
-                break;
-        }
+        gameState.handleKeyInput(key, action);
     };
     glfwSetKeyCallback(window, handleKeyInput);
 
@@ -220,6 +206,11 @@ int main() {
         glfwPollEvents();
         gameState.update(window, deltaTime);
         camera.position = calculateCameraPosition(gameState.cameraAngle, gameState.cameraZoom);
+
+        if (gameState.piecesHasUpdated) {
+            chessPieces.updatePieces(gameState.pieces);
+            gameState.piecesHasUpdated = false;
+        }
 
         // Background color
         glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
