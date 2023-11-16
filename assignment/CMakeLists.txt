@@ -40,5 +40,7 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}/resources
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 
+#target_compile_definitions(${PROJECT_NAME} PRIVATE
+#        RESOURCES_DIR="./resources/")
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-        RESOURCES_DIR="./resources/")
+        RESOURCES_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/")
