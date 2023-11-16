@@ -102,14 +102,14 @@ int main() {
 
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArray<Vertex>::create(
+    auto object = framework::VertexArray<Vertex>(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Vertex, gridPosition)},
         },
-        chessboardVertices,
-        chessboardIndices
+        framework::VertexBuffer(chessboardVertices),
+        framework::IndexBuffer(chessboardIndices)
     );
 
     // Projection

@@ -119,14 +119,14 @@ struct Chessboard {
         // Board size
         chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-        auto object = framework::VertexArray<Chessboard::Vertex>::create(
+        auto object = framework::VertexArray(
             chessboardShader,
             {
                 {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
                 {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
             },
-            chessboardVertices,
-            chessboardIndices
+            framework::VertexBuffer(chessboardVertices),
+            framework::IndexBuffer(chessboardIndices)
         );
 
         return {
@@ -218,13 +218,13 @@ struct Cube {
         cubeShader->uploadUniformMatrix4("projection", projectionMatrix);
         cubeShader->uploadUniformMatrix4("view", viewMatrix);
 
-        auto object = framework::VertexArray<Cube::Vertex>::create(
+        auto object = framework::VertexArray(
             cubeShader,
             {
                 {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
             },
-            {cubeVertices.begin(), cubeVertices.end()},
-            cubeIndices
+            framework::VertexBuffer<Cube::Vertex>({cubeVertices.begin(), cubeVertices.end()}),
+            framework::IndexBuffer(cubeIndices)
         );
 
         return {

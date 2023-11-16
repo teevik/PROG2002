@@ -1,6 +1,7 @@
 #include "ChessBoard.h"
 
 #include "framework/VertexArray.h"
+#include "framework/VertexBuffer.h"
 #include "framework/Texture.h"
 #include "GLFW/glfw3.h"
 #include "framework/Camera.h"
@@ -110,15 +111,15 @@ ChessBoard ChessBoard::create() {
     };
 
     // VertexArray
-    auto object = framework::VertexArray<ChessBoard::Vertex>::create(
+    auto object = framework::VertexArray(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, textureCoordinates)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, gridPosition)},
         },
-        chessboardVertices,
-        chessboardIndices
+        framework::VertexBuffer(chessboardVertices),
+        framework::IndexBuffer(chessboardIndices)
     );
 
     auto texture = framework::loadTexture(RESOURCES_DIR + std::string("textures/floor_texture.png"));
@@ -129,8 +130,7 @@ ChessBoard ChessBoard::create() {
     };
 }
 
-void
-ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const {
+void ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const {
     object.shader->uploadUniformBool1("use_textures", useTextures);
     object.shader->uploadUniformInt2("selected_tile", selectedTile);
 

@@ -116,13 +116,13 @@ ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
     auto cubeIndices = framework::unitCube::indices;
 
     // VertexArray
-    auto object = framework::VertexArray<ChessPieces::Vertex>::create(
+    auto object = framework::VertexArray(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(ChessPieces::Vertex, position)},
         },
-        {cubeVertices.begin(), cubeVertices.end()},
-        cubeIndices
+        framework::VertexBuffer<ChessPieces::Vertex>({cubeVertices.begin(), cubeVertices.end()}),
+        framework::IndexBuffer(cubeIndices)
     );
 
     auto texture = framework::loadCubemap(RESOURCES_DIR + std::string("textures/cube_texture.png"));

@@ -227,7 +227,7 @@ int main() {
         bool isPressingEscape = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
         if (isPressingEscape) break;
     }
-
+    
     glfwTerminate();
 
     return EXIT_SUCCESS;

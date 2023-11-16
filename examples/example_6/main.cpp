@@ -55,13 +55,13 @@ int main() {
 
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArray<glm::vec2>::create(
+    auto object = framework::VertexArray(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = 0},
         },
-        grid.vertices,
-        grid.indices
+        framework::VertexBuffer(grid.vertices),
+        framework::IndexBuffer(grid.indices)
     );
 
     // Camera
