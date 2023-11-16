@@ -71,13 +71,9 @@ const std::string fragmentShaderSource = R"(
 ChessBoard ChessBoard::create() {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    // Model matrix (unit)
     chessboardShader->uploadUniformMatrix4("model", glm::mat4(1.0f));
-
-    // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    // Chessboard mesh
     std::vector<ChessBoard::Vertex> chessboardVertices = {
         { // right top
             .position = {1.f, 1.f},
@@ -110,8 +106,7 @@ ChessBoard ChessBoard::create() {
         2 // left top
     };
 
-    // VertexArray
-    auto object = framework::VertexArray(
+    auto vertexArray = framework::VertexArray(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, position)},
@@ -125,18 +120,18 @@ ChessBoard ChessBoard::create() {
     auto texture = framework::loadTexture(RESOURCES_DIR + std::string("textures/floor_texture.png"));
 
     return {
-        .object = std::move(object),
+        .vertexArray = std::move(vertexArray),
         .texture = std::move(texture)
     };
 }
 
 void ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const {
-    object.shader->uploadUniformBool1("use_textures", useTextures);
-    object.shader->uploadUniformInt2("selected_tile", selectedTile);
+    vertexArray.shader->uploadUniformBool1("use_textures", useTextures);
+    vertexArray.shader->uploadUniformInt2("selected_tile", selectedTile);
 
-    object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    object.shader->uploadUniformMatrix4("view", camera.viewMatrix());
+    vertexArray.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    vertexArray.shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     texture.bind();
-    object.draw();
+    vertexArray.draw();
 }

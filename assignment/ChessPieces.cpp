@@ -53,7 +53,10 @@ std::string vertexShaderSource() {
 
             float offset = 4. / (float(BOARD_SIZE));
 
+            // Position of {0, 0} on the board
             vec2 piece_origin = vec2(-2 + offset / 2., 2 - offset / 2.);
+
+            // Offset from {0, 0}
             vec2 piece_offset = vec2(offset, -offset) * piece_position;
 
             gl_Position =
@@ -62,7 +65,7 @@ std::string vertexShaderSource() {
         }
     )";
 
-    // Replace constants
+    // Replace constants with actual value
     shader = std::regex_replace(shader, std::regex("BOARD_SIZE"), std::to_string(BOARD_SIZE));
     shader = std::regex_replace(shader, std::regex("BOARD_PIECES"), std::to_string(BOARD_PIECES));
 
@@ -105,7 +108,6 @@ ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
     auto cubeShader = std::make_shared<framework::Shader>(vertexShaderSource(), fragmentShaderSource);
     cubeShader->uploadUniformMatrix4("model", modelMatrix());
 
-    // Chessboard mesh
     auto cubeVertices =
         framework::unitCube::vertices | std::views::transform([](auto position) {
             return ChessPieces::Vertex{
@@ -115,11 +117,10 @@ ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
 
     auto cubeIndices = framework::unitCube::indices;
 
-    // VertexArray
-    auto object = framework::VertexArray(
+    auto vertexArray = framework::VertexArray(
         cubeShader,
         {
-            {.type =GL_FLOAT, .size = 3, .offset = offsetof(ChessPieces::Vertex, position)},
+            {.type = GL_FLOAT, .size = 3, .offset = offsetof(ChessPieces::Vertex, position)},
         },
         framework::VertexBuffer<ChessPieces::Vertex>({cubeVertices.begin(), cubeVertices.end()}),
         framework::IndexBuffer(cubeIndices)
@@ -130,7 +131,7 @@ ChessPieces ChessPieces::create(const std::vector<InstanceData> &pieces) {
     auto instanceBuffer = framework::UniformBuffer<InstanceData>::create(pieces);
 
     return {
-        .object = std::move(object),
+        .vertexArray = std::move(vertexArray),
         .texture = std::move(texture),
         .instanceBuffer = std::move(instanceBuffer)
     };
@@ -146,14 +147,14 @@ void ChessPieces::draw(
     bool useTextures,
     const framework::Camera &camera
 ) const {
-    object.shader->uploadUniformInt2("selected_tile", selectedTile);
-    object.shader->uploadUniformInt2("piece_being_moved", pieceBeingMoved.value_or(glm::ivec2(-1, -1)));
+    vertexArray.shader->uploadUniformInt2("selected_tile", selectedTile);
+    vertexArray.shader->uploadUniformInt2("piece_being_moved", pieceBeingMoved.value_or(glm::ivec2(-1, -1)));
 
-    object.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
-    object.shader->uploadUniformBool1("use_textures", useTextures);
-    object.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    object.shader->uploadUniformMatrix4("view", camera.viewMatrix());
+    vertexArray.shader->uploadUniformBuffer("InstanceBuffer", 0, instanceBuffer);
+    vertexArray.shader->uploadUniformBool1("use_textures", useTextures);
+    vertexArray.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    vertexArray.shader->uploadUniformMatrix4("view", camera.viewMatrix());
 
     texture.bind();
-    object.drawInstanced(BOARD_PIECES);
+    vertexArray.drawInstanced(BOARD_PIECES);
 }

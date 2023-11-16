@@ -15,12 +15,12 @@ struct ChessPieces {
     // Needs to comply with std140, so each data needs to be 16 bytes long
     struct InstanceData {
         glm::ivec2 position; // 8 bytes
-        glm::vec2 _padding1; //8 of padding
+        glm::vec2 _padding1; // 8 of padding
 
         glm::vec4 color; // 16 bytes
     };
 
-    const framework::VertexArray<Vertex> object;
+    const framework::VertexArray<Vertex> vertexArray;
     const framework::Texture texture;
     const framework::UniformBuffer<InstanceData> instanceBuffer;
 

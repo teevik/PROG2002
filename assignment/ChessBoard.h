@@ -19,7 +19,7 @@ struct ChessBoard {
         glm::vec2 gridPosition;
     };
 
-    const framework::VertexArray<Vertex> object;
+    const framework::VertexArray<Vertex> vertexArray;
     const framework::Texture texture;
 
     static ChessBoard create();
