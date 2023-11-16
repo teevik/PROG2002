@@ -7,6 +7,59 @@ static void glfwErrorCallback(int32_t code, const char *description) {
     std::cerr << "GLFW Error (0x" << std::hex << code << "): " << description << std::endl;
 }
 
+std::string getSeverityString(GLenum severity) {
+    switch (severity) {
+        case GL_DEBUG_SEVERITY_HIGH:
+            return "High";
+
+        case GL_DEBUG_SEVERITY_MEDIUM :
+            return "Medium";
+
+        case GL_DEBUG_SEVERITY_LOW :
+            return "Low";
+
+        case GL_DEBUG_SEVERITY_NOTIFICATION :
+            return "Notification";
+
+        default:
+            return "Unknown";
+    }
+}
+
+std::string getTypeString(GLenum severity) {
+    switch (severity) {
+        case GL_DEBUG_TYPE_ERROR :
+            return "Error";
+
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR :
+            return "Deprecated behavior";
+
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR :
+            return "Undefined behavior";
+
+        case GL_DEBUG_TYPE_PORTABILITY :
+            return "Not portable";
+
+        case GL_DEBUG_TYPE_PERFORMANCE :
+            return "Performance issue";
+
+        case GL_DEBUG_TYPE_MARKER :
+            return "Command stream annotation";
+
+        case GL_DEBUG_TYPE_PUSH_GROUP :
+            return "Group pushing";
+
+        case GL_DEBUG_TYPE_POP_GROUP :
+            return "Group popping";
+
+        case GL_DEBUG_TYPE_OTHER  :
+            return "Other";
+
+        default:
+            return "Unknown";
+    }
+}
+
 static void GLAPIENTRY debugMessageCallback(
     [[maybe_unused]] GLenum source,
     GLenum type,
@@ -16,13 +69,15 @@ static void GLAPIENTRY debugMessageCallback(
     const GLchar *message,
     [[maybe_unused]] const void *userParam
 ) {
-    std::cerr << "OpenGL Callback: " << (type == GL_DEBUG_TYPE_ERROR ? "** ERROR **" : "")
-              << " Type: 0x" << type
-              << ", Severity: 0x" << severity
-              << ", Message: " << message << std::endl;
-
     if (type == GL_DEBUG_TYPE_ERROR) {
         throw std::runtime_error(message);
+    } else {
+        std::ostream &output = severity == GL_DEBUG_SEVERITY_NOTIFICATION ? std::cout : std::cerr;
+
+        output << "OpenGL Callback: "
+               << " Type: " << getTypeString(type)
+               << ", Severity: " << getSeverityString(severity)
+               << ", Message: " << message << std::endl;
     }
 }
 
@@ -76,6 +131,7 @@ namespace framework {
         std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
         std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
         std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+        std::cout << std::endl;
 
         return window;
     }

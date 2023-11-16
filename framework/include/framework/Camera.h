@@ -9,7 +9,6 @@
 namespace framework {
     struct Camera {
         glm::mat4 projectionMatrix;
-        glm::mat4 viewMatrix;
 
         glm::vec3 position;
         glm::vec3 target;
@@ -35,7 +34,7 @@ namespace framework {
             float zFar = -10.f
         );
 
-        void update();
+        [[nodiscard]] glm::mat4 viewMatrix() const;
     };
 }
 

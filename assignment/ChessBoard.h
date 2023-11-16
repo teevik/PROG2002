@@ -7,9 +7,7 @@
 #include "framework/Texture.h"
 #include "framework/Camera.h"
 
-const int BOARD_SIZE = 8;
-
-struct Chessboard {
+struct ChessBoard {
     struct Vertex {
         /// Vertex position
         glm::vec2 position;
@@ -21,18 +19,12 @@ struct Chessboard {
         glm::vec2 gridPosition;
     };
 
-    const framework::VertexArray<Vertex> object;
+    const framework::VertexArray<Vertex> vertexArray;
     const framework::Texture texture;
 
-    glm::ivec2 selectedTile;
+    static ChessBoard create();
 
-    static Chessboard create(framework::Camera camera);
-
-    void draw(float ambientStrength) const;
-
-    void handleKeyInput(int key, int action);
+    void draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const;
 };
-
-Chessboard createChessboard(framework::Camera camera);
 
 #endif //PROG2002_CHESSBOARD_H

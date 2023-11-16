@@ -73,6 +73,12 @@ namespace framework {
         if (id) glDeleteProgram(id);
     }
 
+    void Shader::uploadUniformBool1(const std::string &name, bool value) const {
+        int32_t location = glGetUniformLocation(id, name.c_str());
+        assert(location != -1);
+        glProgramUniform1i(id, location, value);
+    }
+
     void Shader::uploadUniformInt1(const std::string &name, int value) const {
         int32_t location = glGetUniformLocation(id, name.c_str());
         assert(location != -1);

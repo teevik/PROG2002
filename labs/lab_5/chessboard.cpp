@@ -1,6 +1,6 @@
 #include "chessboard.h"
 
-#include "framework/VertexArrayObject.h"
+#include "framework/VertexArray.h"
 #include "framework/Texture.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "GLFW/glfw3.h"
@@ -109,21 +109,21 @@ Chessboard Chessboard::create(framework::Camera camera) {
 
     // Transformation
     chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix);
+    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix());
     chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
 
     // Board size
     chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
 
-    auto object = framework::VertexArrayObject<Chessboard::Vertex>::create(
+    auto object = framework::VertexArray(
         chessboardShader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, textureCoordinates)},
             {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
         },
-        chessboardVertices,
-        chessboardIndices
+        framework::VertexBuffer(chessboardVertices),
+        framework::IndexBuffer(chessboardIndices)
     );
 
     auto texture = framework::loadTexture(TEXTURES_DIR + std::string("wood.png"));

@@ -55,13 +55,13 @@ int main() {
 
     auto shader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    auto object = framework::VertexArrayObject<glm::vec2>::create(
+    auto object = framework::VertexArray(
         shader,
         {
             {.type =GL_FLOAT, .size = 2, .offset = 0},
         },
-        grid.vertices,
-        grid.indices
+        framework::VertexBuffer(grid.vertices),
+        framework::IndexBuffer(grid.indices)
     );
 
     // Camera
@@ -80,7 +80,7 @@ int main() {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        object.draw(GL_TRIANGLES);
+        object.draw();
 
         // Swap front and back buffer
         glfwSwapBuffers(window);

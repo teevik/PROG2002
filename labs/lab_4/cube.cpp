@@ -53,15 +53,15 @@ Cube Cube::create(GLFWwindow *window, framework::Camera camera) {
 
     // Transformation, model is set in draw()
     cubeShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    cubeShader->uploadUniformMatrix4("view", camera.viewMatrix);
+    cubeShader->uploadUniformMatrix4("view", camera.viewMatrix());
 
-    auto object = framework::VertexArrayObject<Cube::Vertex>::create(
+    auto object = framework::VertexArray(
         cubeShader,
         {
             {.type =GL_FLOAT, .size = 3, .offset = offsetof(Cube::Vertex, position)},
         },
-        {cubeVertices.begin(), cubeVertices.end()},
-        cubeIndices
+        framework::VertexBuffer<Cube::Vertex>({cubeVertices.begin(), cubeVertices.end()}),
+        framework::IndexBuffer(cubeIndices)
     );
 
     auto texture = framework::loadCubemap(TEXTURES_DIR + std::string("concrete.png"));

@@ -11,3 +11,8 @@ build
 # ccls
 compile_commands.json
 .ccls-cache
+
+# nix environment
+flake.nix
+flake.lock
+.envrc

@@ -1,10 +1,11 @@
-#include "chessboard.h"
+#include "ChessBoard.h"
 
 #include "framework/VertexArray.h"
+#include "framework/VertexBuffer.h"
 #include "framework/Texture.h"
-#include "glm/ext/matrix_transform.hpp"
 #include "GLFW/glfw3.h"
 #include "framework/Camera.h"
+#include "constants.h"
 
 // language=glsl
 const std::string vertexShaderSource = R"(
@@ -26,6 +27,7 @@ const std::string vertexShaderSource = R"(
     void main() {
         vertex_data.texture_coordinates = texture_coordinates;
         vertex_data.grid_position = grid_position;
+
         gl_Position = projection * view * model * vec4(position.xy, 0.0, 1.0);
     }
 )";
@@ -42,6 +44,7 @@ const std::string fragmentShaderSource = R"(
     out vec4 color;
 
     layout(binding=0) uniform sampler2D texture_sampler;
+    uniform bool use_textures;
     uniform int board_size;
     uniform ivec2 selected_tile;
 
@@ -61,15 +64,17 @@ const std::string fragmentShaderSource = R"(
 
         vec4 texture_color = texture(texture_sampler, vertex_data.texture_coordinates);
 
-        color = mix(chessboard_color, texture_color, 0.7);
+        color = mix(chessboard_color, texture_color, use_textures ? 0.7 : 0);
     }
 )";
 
-Chessboard Chessboard::create(framework::Camera camera) {
+ChessBoard ChessBoard::create() {
     auto chessboardShader = std::make_shared<framework::Shader>(vertexShaderSource, fragmentShaderSource);
 
-    // Chessboard mesh
-    std::vector<Chessboard::Vertex> chessboardVertices = {
+    chessboardShader->uploadUniformMatrix4("model", glm::mat4(1.0f));
+    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
+
+    std::vector<ChessBoard::Vertex> chessboardVertices = {
         { // right top
             .position = {1.f, 1.f},
             .textureCoordinates = {1.f, 0.f},
@@ -101,66 +106,32 @@ Chessboard Chessboard::create(framework::Camera camera) {
         2 // left top
     };
 
-    auto chessboardModelMatrix = glm::mat4(1.0f);
-    chessboardModelMatrix = glm::scale(chessboardModelMatrix, glm::vec3(5));
-    chessboardModelMatrix = glm::rotate(chessboardModelMatrix, glm::radians(-80.f), glm::vec3(1.0, 0.0, 0.0));
-    chessboardModelMatrix = glm::translate(chessboardModelMatrix, glm::vec3(0.f, 1.f, -0.5f));
-
-    // Transformation
-    chessboardShader->uploadUniformMatrix4("projection", camera.projectionMatrix);
-    chessboardShader->uploadUniformMatrix4("view", camera.viewMatrix());
-    chessboardShader->uploadUniformMatrix4("model", chessboardModelMatrix);
-
-    // Board size
-    chessboardShader->uploadUniformInt1("board_size", BOARD_SIZE);
-
-    auto object = framework::VertexArray(
+    auto vertexArray = framework::VertexArray(
         chessboardShader,
         {
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, position)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, textureCoordinates)},
-            {.type =GL_FLOAT, .size = 2, .offset = offsetof(Chessboard::Vertex, gridPosition)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, position)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, textureCoordinates)},
+            {.type =GL_FLOAT, .size = 2, .offset = offsetof(ChessBoard::Vertex, gridPosition)},
         },
         framework::VertexBuffer(chessboardVertices),
         framework::IndexBuffer(chessboardIndices)
     );
 
-    auto texture = framework::loadTexture(TEXTURES_DIR + std::string("wood.png"));
+    auto texture = framework::loadTexture(RESOURCES_DIR + std::string("textures/floor_texture.png"));
 
     return {
-        .object = std::move(object),
-        .texture = std::move(texture),
-        .selectedTile = {0, 0}
+        .vertexArray = std::move(vertexArray),
+        .texture = std::move(texture)
     };
 }
 
-void Chessboard::draw() const {
-    object.shader->uploadUniformInt2("selected_tile", selectedTile);
+void ChessBoard::draw(glm::ivec2 selectedTile, bool useTextures, const framework::Camera &camera) const {
+    vertexArray.shader->uploadUniformBool1("use_textures", useTextures);
+    vertexArray.shader->uploadUniformInt2("selected_tile", selectedTile);
+
+    vertexArray.shader->uploadUniformMatrix4("projection", camera.projectionMatrix);
+    vertexArray.shader->uploadUniformMatrix4("view", camera.viewMatrix());
+
     texture.bind();
-    object.draw();
-}
-
-void Chessboard::handleKeyInput(int key, int action) {
-    if (action == GLFW_PRESS) {
-        switch (key) {
-            case GLFW_KEY_LEFT:
-                if (selectedTile.x > 0) selectedTile.x -= 1;
-                break;
-
-            case GLFW_KEY_RIGHT:
-                if (selectedTile.x < BOARD_SIZE - 1) selectedTile.x += 1;
-                break;
-
-            case GLFW_KEY_UP:
-                if (selectedTile.y > 0) selectedTile.y -= 1;
-                break;
-
-            case GLFW_KEY_DOWN:
-                if (selectedTile.y < BOARD_SIZE - 1) selectedTile.y += 1;
-                break;
-
-            default:
-                break;
-        }
-    }
+    vertexArray.draw();
 }
